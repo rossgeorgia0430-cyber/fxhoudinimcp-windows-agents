@@ -9,7 +9,7 @@
   <p align="center">
     The most comprehensive MCP server for SideFX Houdini.
     <br/>
-    173 tools across 20 categories, covering every major Houdini context.
+    177 tools across 21 categories, covering every major Houdini context.
     <br/><br/>
   </p>
 
@@ -53,13 +53,14 @@
 
 A comprehensive [MCP](https://modelcontextprotocol.io/) (Model Context Protocol) server for [SideFX Houdini](https://www.sidefx.com/). Connects AI assistants like Claude directly to Houdini's Python API, enabling natural language control over scene building, simulation setup, rendering, and more.
 
-**173 tools**, **8 resources**, and **6 workflow prompts** out of the box.
+**177 tools**, **8 resources**, and **6 workflow prompts** out of the box.
 
 <!-- FEATURES -->
 ## Features
 
 | Category | Tools | Description |
 |----------|-------|-------------|
+| **Graph Intelligence** | 4 | Atomic validated network building, network verification, node doc cards, cook profiling |
 | **Scene Management** | 7 | Open, save, import/export, scene info |
 | **Node Operations** | 17 | Create, delete, copy, connect, layout, flags |
 | **Parameters** | 11 | Get/set values, expressions, keyframes, spare parameters |
@@ -95,7 +96,7 @@ flowchart LR
 
     subgraph MCP[" ⚡ FXHoudini MCP Server "]
         direction TB
-        B1("🔧 173 Tools")
+        B1("🔧 177 tools")
         B2("📦 8 Resources")
         B3("💬 6 Prompts")
     end
@@ -283,7 +284,7 @@ python tests/run_integration.py
 ```
 
 Unit tests mock `hou` and run anywhere. The integration suite in
-`tests/integration/` executes all 173 commands against live Houdini via
+`tests/integration/` executes all 177 commands against live Houdini via
 `hython` — including end-to-end user scenarios (procedural modeling,
 simulation, animation, lookdev) — and prints per-command timing and
 coverage reports; it is skipped automatically when `hou` is not
@@ -296,7 +297,7 @@ server's own bridge).
 
 1. **Houdini Plugin** (`houdini/`): Runs inside Houdini's Python environment. Registers `@hwebserver.apiFunction` endpoints that receive JSON commands. Uses `hdefereval.executeInMainThreadWithResult()` to safely execute `hou.*` calls on the main thread.
 
-2. **MCP Server** (`python/fxhoudinimcp/`): A standalone Python process using FastMCP. Exposes 173 tools, 8 resources, and 6 prompts via the MCP protocol. Forwards tool calls to Houdini over HTTP.
+2. **MCP Server** (`python/fxhoudinimcp/`): A standalone Python process using FastMCP. Exposes 177 tools, 8 resources, and 6 prompts via the MCP protocol. Forwards tool calls to Houdini over HTTP.
 
 3. **Bridge** (`python/fxhoudinimcp/bridge.py`): Async HTTP client that sends commands to Houdini's hwebserver and deserializes responses. Handles connection errors and timeouts.
 

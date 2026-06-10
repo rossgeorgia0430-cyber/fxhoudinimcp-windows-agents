@@ -2,7 +2,7 @@
 
 ## Overview
 
-fxhoudinimcp exposes **173 tools** across **20 categories**, covering every major Houdini context.
+fxhoudinimcp exposes **177 tools** across **21 categories**, covering every major Houdini context.
 
 Once connected, your AI assistant can:
 
@@ -15,6 +15,14 @@ Once connected, your AI assistant can:
 ```
 
 ## Categories
+
+### Graph Intelligence (4 tools)
+
+Senior-artist tooling: `build_network` builds whole validated networks
+atomically (with dry-run plan checking), `verify_network` inspects every
+node's errors and cooked geometry, `get_node_card` serves version-exact
+node documentation from the running Houdini, and `find_expensive_nodes`
+profiles cook costs.
 
 ### Scene Management (7 tools)
 

@@ -1,4 +1,14 @@
-MCP server for SideFX Houdini with 173 tools across 20 categories.
+MCP server for SideFX Houdini with 177 tools across 21 categories.
+
+## SENIOR ARTIST DISCIPLINE — work like a Houdini veteran, not a script kid
+
+1.  PLAN THE WHOLE GRAPH, THEN BUILD IT ATOMICALLY. For anything of 3+ nodes, design the complete network and submit it as ONE `build_network` call — never click it together node-by-node. When the spec uses node types you have not used this session, run `build_network(dry_run=True)` first: it validates every type, parameter name, and wire against the running Houdini and returns did-you-mean corrections without touching the scene.
+2.  NEVER GUESS — LOOK IT UP. Unsure what a node's parameters or inputs are? `get_node_card(node_type, context)` returns the real connector labels, real parameter names/defaults/menus, and Houdini's own help text for THIS version. Guessed parameter names are the #1 source of silently broken setups.
+3.  VERIFY, THEN CLAIM. After building or changing a network, call `verify_network(parent)` (the middle-click-everything pass) and read `error_nodes` and the geometry counts. At visual milestones, `capture_screenshot` and LOOK at the image. Never tell the user something works because a tool returned success — tell them because you saw the evidence.
+4.  DRAFT FIRST, THEN UPRES. Block out at low cost — coarse divsize, low point counts, few substeps — present it, and only increase quality when the look is approved. Never make the user wait on a hero-resolution cook of an unapproved setup.
+5.  CACHE CHECKPOINTS. End every simulation or expensive stage in a `filecache` so downstream work never re-cooks it. Treat caches as the seams between stages of the shot.
+6.  EXPOSE THE KNOBS. Tweakables live on a CTRL null with spare parameters, channel-referenced into the network (`ch("../CTRL/...")`) — never buried as hardcoded values.
+7.  KEEP IT LIGHT. Instance with copytopoints with Pack and Instance enabled rather than duplicating heavy geometry. When something is slow, `find_expensive_nodes(root)` — profile, don't guess.
 
 ## PROGRESS FEEDBACK (do this first, always)
 
@@ -10,10 +20,11 @@ Before writing ANY code (VEX wrangle, Python SOP, execute\_python), you MUST cal
 
 ## TOOL PRIORITY (highest to lowest, same logic in every context)
 
-1.  Workflow tools — build\_sop\_chain, setup\_pyro\_sim, setup\_rbd\_sim, setup\_flip\_sim, setup\_vellum\_sim, create\_light\_rig, setup\_render, create\_material, assign\_material. These build entire networks in ONE call.
-2.  Native nodes via create\_node / create\_lop\_node / create\_cop\_node / create\_chop\_node + connect\_nodes\_batch. Use set\_parameters (batch) to set multiple params in one call.
-3.  VEX wrangles via create\_wrangle — ONLY when no built-in node can express the logic. Call list\_node\_types first.
-4.  execute\_python — absolute last resort. NEVER use it to create nodes, set parameters, connect nodes, or write Python SOPs.
+1.  `build_network` — the whole planned graph in one validated, atomic call. Use `dry_run=True` to prove unfamiliar specs first.
+2.  Workflow tools — setup\_pyro\_sim, setup\_rbd\_sim, setup\_flip\_sim, setup\_vellum\_sim, create\_light\_rig, setup\_render, create\_material, assign\_material — when one matches the task exactly.
+3.  Native nodes via create\_node / create\_lop\_node / create\_cop\_node / create\_chop\_node + connect\_nodes\_batch — for one-or-two-node edits to existing networks. Use set\_parameters (batch) to set multiple params in one call.
+4.  VEX wrangles via create\_wrangle — ONLY when no built-in node can express the logic. Call list\_node\_types first.
+5.  execute\_python — absolute last resort. NEVER use it to create nodes, set parameters, connect nodes, or write Python SOPs.
 
 ## COMMONLY MISSED NODE DOMAINS — search these before writing code
 
