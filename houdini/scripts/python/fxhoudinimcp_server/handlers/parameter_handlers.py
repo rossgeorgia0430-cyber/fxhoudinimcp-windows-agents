@@ -166,7 +166,28 @@ register_handler("parameters.get_parameter", _get_parameter)
 def _set_parameter(
     node_path: str, parm_name: str, value: Any, **_: Any
 ) -> dict[str, Any]:
-    """Set a parameter value, auto-detecting the appropriate type."""
+    """Set a parameter value, auto-detecting the appropriate type.
+
+    A list/tuple value addressed at a vector parameter name (e.g. "size"
+    on a box, "t" on a transform) is applied to the whole parm tuple, so
+    callers are not forced to know the per-component names (sizex, ...).
+    """
+    if isinstance(value, (list, tuple)):
+        node = _resolve_node(node_path)
+        parm_tuple = node.parmTuple(parm_name)
+        if parm_tuple is not None:
+            if len(value) != len(parm_tuple):
+                raise ValueError(
+                    f"Parameter '{parm_name}' on {node_path} has "
+                    f"{len(parm_tuple)} components, got {len(value)} values."
+                )
+            parm_tuple.set(value)
+            return {
+                "node_path": node_path,
+                "parm_name": parm_name,
+                "new_value": [_serialize_value(p.eval()) for p in parm_tuple],
+            }
+
     parm = _resolve_parm(node_path, parm_name)
 
     parm.set(value)

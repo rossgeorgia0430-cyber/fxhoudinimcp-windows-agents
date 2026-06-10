@@ -1,4 +1,4 @@
-MCP server for SideFX Houdini with 168 tools across 19 categories.
+MCP server for SideFX Houdini with 173 tools across 20 categories.
 
 ## PROGRESS FEEDBACK (do this first, always)
 

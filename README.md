@@ -9,7 +9,7 @@
   <p align="center">
     The most comprehensive MCP server for SideFX Houdini.
     <br/>
-    168 tools across 19 categories, covering every major Houdini context.
+    173 tools across 20 categories, covering every major Houdini context.
     <br/><br/>
   </p>
 
@@ -53,7 +53,7 @@
 
 A comprehensive [MCP](https://modelcontextprotocol.io/) (Model Context Protocol) server for [SideFX Houdini](https://www.sidefx.com/). Connects AI assistants like Claude directly to Houdini's Python API, enabling natural language control over scene building, simulation setup, rendering, and more.
 
-**168 tools**, **8 resources**, and **6 workflow prompts** out of the box.
+**173 tools**, **8 resources**, and **6 workflow prompts** out of the box.
 
 <!-- FEATURES -->
 ## Features
@@ -274,13 +274,22 @@ ruff check python/
 
 # Run tests
 pytest
+
+# Run integration tests inside a real Houdini (requires a license seat;
+# uses the newest installed Houdini, override with the HYTHON env var)
+tests/run_integration.ps1
 ```
+
+Unit tests mock `hou` and run anywhere. The integration suite in
+`tests/integration/` executes every handler against live Houdini via
+`hython` and prints a per-command timing report; it is skipped
+automatically when `hou` is not available.
 
 ### How It Works
 
 1. **Houdini Plugin** (`houdini/`): Runs inside Houdini's Python environment. Registers `@hwebserver.apiFunction` endpoints that receive JSON commands. Uses `hdefereval.executeInMainThreadWithResult()` to safely execute `hou.*` calls on the main thread.
 
-2. **MCP Server** (`python/fxhoudinimcp/`): A standalone Python process using FastMCP. Exposes 168 tools, 8 resources, and 6 prompts via the MCP protocol. Forwards tool calls to Houdini over HTTP.
+2. **MCP Server** (`python/fxhoudinimcp/`): A standalone Python process using FastMCP. Exposes 173 tools, 8 resources, and 6 prompts via the MCP protocol. Forwards tool calls to Houdini over HTTP.
 
 3. **Bridge** (`python/fxhoudinimcp/bridge.py`): Async HTTP client that sends commands to Houdini's hwebserver and deserializes responses. Handles connection errors and timeouts.
 

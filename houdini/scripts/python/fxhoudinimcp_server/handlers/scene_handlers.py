@@ -160,33 +160,41 @@ def import_file(
 
     ext = os.path.splitext(file_path)[1].lower()
 
-    # Determine the right import strategy based on file extension
+    # Decide the import strategy from what the parent can contain — the
+    # default parent /obj is a Manager whose children are Object nodes.
+    child_category = parent.childTypeCategory()
+    child_cat = child_category.name() if child_category is not None else None
+
     if ext in (".abc",):
-        # Alembic: create an Alembic Archive at /obj level or alembic SOP
-        if parent.type().category().name() == "Object":
+        # Alembic: alembic SOP inside SOP networks, archive elsewhere
+        if child_cat == "Sop":
+            node = parent.createNode("alembic", node_name or "alembic_import")
+            node.parm("fileName").set(file_path)
+            created_path = node.path()
+        else:
             container = parent.createNode("alembicarchive", node_name or "alembic_import")
             container.parm("fileName").set(file_path)
             container.parm("buildHierarchy").pressButton()
             created_path = container.path()
-        else:
-            node = parent.createNode("alembic", node_name or "alembic_import")
-            node.parm("fileName").set(file_path)
-            created_path = node.path()
     elif ext in (".usd", ".usda", ".usdc", ".usdz"):
-        # USD: use a sublayer or reference LOP, or a USD import at obj level
-        if parent.type().category().name() == "Lop":
+        # USD: use a sublayer inside LOP networks, a LOP network elsewhere
+        if child_cat == "Lop":
             node = parent.createNode("sublayer", node_name or "usd_import")
             node.parm("filepath1").set(file_path)
             created_path = node.path()
         else:
-            # At /obj level, create a LOP network with a sublayer
             lopnet = parent.createNode("lopnet", node_name or "usd_import")
             sub = lopnet.createNode("sublayer", "sublayer1")
             sub.parm("filepath1").set(file_path)
             created_path = lopnet.path()
     else:
-        # Generic geometry: use a File SOP inside a geo container
-        if parent.type().category().name() == "Object":
+        # Generic geometry: a File SOP, wrapped in a geo container when
+        # the parent cannot hold SOPs directly
+        if child_cat == "Sop":
+            file_node = parent.createNode("file", node_name or "file_import")
+            file_node.parm("file").set(file_path)
+            created_path = file_node.path()
+        else:
             geo = parent.createNode("geo", node_name or "file_import")
             # Remove default file node if present
             for child in geo.children():
@@ -196,10 +204,6 @@ def import_file(
             file_node.setDisplayFlag(True)
             file_node.setRenderFlag(True)
             created_path = geo.path()
-        else:
-            file_node = parent.createNode("file", node_name or "file_import")
-            file_node.parm("file").set(file_path)
-            created_path = file_node.path()
 
     # Focus on the created node
     created_node = hou.node(created_path)

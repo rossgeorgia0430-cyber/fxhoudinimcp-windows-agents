@@ -139,6 +139,9 @@ async def set_detail_attrib(
 ) -> dict:
     """Set a detail attribute on a SOP node.
 
+    Appends an Attribute Create SOP after the node and moves the display
+    flag to it; the result includes the new node's path.
+
     Args:
         node_path: Node path.
         attrib_name: Attribute name.

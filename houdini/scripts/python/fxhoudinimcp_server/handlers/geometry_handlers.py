@@ -333,43 +333,57 @@ def _set_detail_attrib(
     attrib_name: str,
     value: Any,
 ) -> dict[str, Any]:
-    """Set a detail (global) attribute on a SOP node's geometry."""
+    """Set a detail (global) attribute via an appended Attribute Create SOP.
+
+    SOP geometry cannot be edited in place from outside a node cook
+    (hou.SopNode has no setGeometry), so this wires an attribcreate node
+    after *node_path* and moves the display/render flags to it.
+    """
     node = hou.node(node_path)
     if node is None:
         raise hou.OperationFailed(f"Node not found: {node_path}")
-
-    geo = node.geometry()
-    if geo is None:
+    if node.geometry() is None:
         raise hou.OperationFailed(f"Node has no geometry: {node_path}")
 
-    with geo.freeze() as frozen_geo:
-        # Determine attribute type from value
-        if isinstance(value, float):
-            if frozen_geo.findGlobalAttrib(attrib_name) is None:
-                frozen_geo.addAttrib(hou.attribType.Global, attrib_name, 0.0)
-            frozen_geo.setGlobalAttribValue(attrib_name, value)
-        elif isinstance(value, int):
-            if frozen_geo.findGlobalAttrib(attrib_name) is None:
-                frozen_geo.addAttrib(hou.attribType.Global, attrib_name, 0)
-            frozen_geo.setGlobalAttribValue(attrib_name, value)
-        elif isinstance(value, str):
-            if frozen_geo.findGlobalAttrib(attrib_name) is None:
-                frozen_geo.addAttrib(hou.attribType.Global, attrib_name, "")
-            frozen_geo.setGlobalAttribValue(attrib_name, value)
-        elif isinstance(value, (list, tuple)):
-            default = [0.0] * len(value)
-            if frozen_geo.findGlobalAttrib(attrib_name) is None:
-                frozen_geo.addAttrib(hou.attribType.Global, attrib_name, default)
-            frozen_geo.setGlobalAttribValue(attrib_name, value)
-        else:
-            raise ValueError(f"Unsupported value type: {type(value).__name__}")
+    attrib_node = node.parent().createNode("attribcreate", f"set_{attrib_name}")
+    attrib_node.setInput(0, node)
+    attrib_node.parm("numattr").set(1)
+    attrib_node.parm("class1").set("detail")
+    attrib_node.parm("name1").set(attrib_name)
 
-        node.setGeometry(frozen_geo)
+    if isinstance(value, str):
+        attrib_node.parm("type1").set("index")
+        attrib_node.parm("string1").set(value)
+    elif isinstance(value, bool):
+        attrib_node.parm("type1").set("int")
+        attrib_node.parm("value1v1").set(int(value))
+    elif isinstance(value, int):
+        attrib_node.parm("type1").set("int")
+        attrib_node.parm("value1v1").set(value)
+    elif isinstance(value, float):
+        attrib_node.parm("type1").set("float")
+        attrib_node.parm("value1v1").set(value)
+    elif isinstance(value, (list, tuple)) and 1 <= len(value) <= 4:
+        attrib_node.parm("type1").set("float")
+        attrib_node.parm("size1").set(len(value))
+        for index, component in enumerate(value):
+            attrib_node.parm(f"value1v{index + 1}").set(float(component))
+    else:
+        attrib_node.destroy()
+        raise ValueError(f"Unsupported value type: {type(value).__name__}")
+
+    attrib_node.setDisplayFlag(True)
+    attrib_node.setRenderFlag(True)
+
+    # Read the value back from the cooked geometry so the result reports
+    # what actually happened rather than what was requested.
+    applied = attrib_node.geometry().attribValue(attrib_name)
 
     return {
         "node_path": node_path,
+        "attrib_node_path": attrib_node.path(),
         "attrib_name": attrib_name,
-        "value": _vec_to_list(value),
+        "value": _vec_to_list(applied),
         "success": True,
     }
 
