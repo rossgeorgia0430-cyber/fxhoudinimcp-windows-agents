@@ -46,57 +46,119 @@ def _focus_network_editor(node: hou.Node) -> None:
         pass
 
 
+def _require_cop(node_path: str, tool: str) -> tuple[hou.Node, str]:
+    """Resolve a COP node and return (node, category), or raise a clear error.
+
+    Accepts modern Copernicus ('Cop') and legacy 'Cop2' nodes.
+    """
+    node = _get_cop_node(node_path)
+    category = node.type().category().name()
+    if category not in ("Cop", "Cop2"):
+        raise ValueError(
+            f"'{node_path}' is a {category} node, not a COP. {tool} works on "
+            "Copernicus ('Cop', Houdini 20.5+) or legacy 'Cop2' nodes."
+        )
+    return node, category
+
+
+def _copernicus_image_info(node: hou.Node) -> tuple[list[int] | None, list[dict], str | None]:
+    """Read a Copernicus node's output layers via the modern ImageLayer API.
+
+    Returns (resolution [w, h] or None, per-layer detail list, error or None).
+    Houdini 21 Copernicus nodes have no xRes()/planes() — image data is read
+    from node.layer(output_index), each an ImageLayer with bufferResolution(),
+    channelCount() and storageType().
+    """
+    try:
+        names = list(node.outputNames())
+    except Exception as e:  # noqa: BLE001 - report, don't mask
+        return None, [], f"outputNames() failed: {type(e).__name__}: {e}"
+
+    try:
+        node.cook(force=False)
+    except hou.OperationFailed as e:
+        return None, [], f"cook failed: {e}"
+
+    resolution: list[int] | None = None
+    layers: list[dict] = []
+    for index, name in enumerate(names):
+        try:
+            layer = node.layer(index)
+            res = layer.bufferResolution()
+            wh = [int(res[0]), int(res[1])]
+            if resolution is None:
+                resolution = wh
+            layers.append(
+                {
+                    "name": name,
+                    "output_index": index,
+                    "resolution": wh,
+                    "channels": int(layer.channelCount()),
+                    "storage": str(layer.storageType()).rsplit(".", 1)[-1],
+                }
+            )
+        except Exception as e:  # noqa: BLE001 - per-layer, keep going
+            layers.append(
+                {"name": name, "output_index": index, "error": f"{type(e).__name__}: {e}"}
+            )
+    return resolution, layers, None
+
+
 ###### cops.get_cop_info
 
 def get_cop_info(node_path: str) -> dict:
     """Return information about a COP node.
 
-    Includes output type, data format, and resolution info.
+    Includes output type, data format, and resolution info. Branches on the
+    node category so modern Copernicus ('Cop') nodes report real resolution and
+    layers via the ImageLayer API, while legacy 'Cop2' nodes use xRes/planes.
 
     Args:
         node_path: Path to the COP node.
     """
-    node = _get_cop_node(node_path)
+    node, category = _require_cop(node_path, "get_cop_info")
 
     info = {
         "node_path": node.path(),
         "node_type": node.type().name(),
-        "category": node.type().category().name(),
+        "category": category,
     }
 
-    # Resolution and format info
-    try:
-        # COP2 nodes have xRes/yRes methods
-        info["x_resolution"] = node.xRes()
-        info["y_resolution"] = node.yRes()
-    except AttributeError:
-        info["x_resolution"] = None
-        info["y_resolution"] = None
+    if category == "Cop":
+        resolution, layers, err = _copernicus_image_info(node)
+        info["x_resolution"] = resolution[0] if resolution else None
+        info["y_resolution"] = resolution[1] if resolution else None
+        info["layers"] = [layer_d["name"] for layer_d in layers]
+        info["layer_details"] = layers
+        if err:
+            info["layer_read_error"] = err
+    else:
+        # Legacy COP2 image API.
+        try:
+            info["x_resolution"] = node.xRes()
+            info["y_resolution"] = node.yRes()
+        except (AttributeError, hou.OperationFailed):
+            info["x_resolution"] = None
+            info["y_resolution"] = None
+        try:
+            info["depth"] = str(node.depth())
+        except (AttributeError, hou.OperationFailed):
+            info["depth"] = None
+        try:
+            planes = node.planes()
+            info["planes"] = list(planes) if planes else []
+        except (AttributeError, hou.OperationFailed):
+            info["planes"] = []
+        try:
+            info["sequence_start"] = node.sequenceStartFrame()
+            info["sequence_end"] = node.sequenceEndFrame()
+            info["sequence_length"] = node.sequenceFrameLength()
+        except (AttributeError, hou.OperationFailed):
+            info["sequence_start"] = None
+            info["sequence_end"] = None
+            info["sequence_length"] = None
 
-    # Depth / data format
-    try:
-        info["depth"] = str(node.depth())
-    except AttributeError:
-        info["depth"] = None
-
-    # Number of planes/layers
-    try:
-        planes = node.planes()
-        info["planes"] = list(planes) if planes else []
-    except AttributeError:
-        info["planes"] = []
-
-    # Sequence info
-    try:
-        info["sequence_start"] = node.sequenceStartFrame()
-        info["sequence_end"] = node.sequenceEndFrame()
-        info["sequence_length"] = node.sequenceFrameLength()
-    except AttributeError:
-        info["sequence_start"] = None
-        info["sequence_end"] = None
-        info["sequence_length"] = None
-
-    # Input/output counts
+    # Common: input/output counts and errors/warnings.
     try:
         info["num_inputs"] = len(node.inputs())
         info["num_outputs"] = len(node.outputs())
@@ -105,12 +167,9 @@ def get_cop_info(node_path: str) -> dict:
         info["num_inputs"] = 0
         info["num_outputs"] = 0
 
-    # Errors and warnings
     try:
-        errors = node.errors()
-        warnings = node.warnings()
-        info["errors"] = list(errors) if errors else []
-        info["warnings"] = list(warnings) if warnings else []
+        info["errors"] = list(node.errors())
+        info["warnings"] = list(node.warnings())
     except (hou.OperationFailed, hou.ObjectWasDeleted, AttributeError) as e:
         logger.debug("Could not read errors/warnings for '%s': %s", node_path, e)
         info["errors"] = []
@@ -205,54 +264,58 @@ def get_cop_geometry(node_path: str, output_index: int = 0) -> dict:
 def get_cop_layer(node_path: str, output_index: int = 0) -> dict:
     """Get image layer data information from a COP node.
 
+    For Copernicus ('Cop') nodes this returns every output layer with its real
+    resolution, channel count and storage type (read from the ImageLayer API);
+    for legacy 'Cop2' nodes it falls back to planes/components.
+
     Args:
         node_path: Path to the COP node.
-        output_index: Output connector index (default 0).
+        output_index: Ignored for Copernicus (all layers are returned); used by
+            legacy Cop2 resolution lookups.
     """
-    node = _get_cop_node(node_path)
+    node, category = _require_cop(node_path, "get_cop_layer")
 
-    result = {
+    result: dict = {
         "node_path": node.path(),
-        "output_index": output_index,
+        "category": category,
     }
 
-    # Try to get layer info via planes/components
+    if category == "Cop":
+        resolution, layers, err = _copernicus_image_info(node)
+        result["layers"] = layers
+        result["layer_count"] = len(layers)
+        result["x_resolution"] = resolution[0] if resolution else None
+        result["y_resolution"] = resolution[1] if resolution else None
+        if err:
+            result["layer_read_error"] = err
+        return result
+
+    # Legacy COP2: planes/components.
+    result["output_index"] = output_index
     try:
         planes = node.planes()
         layer_info = []
         for plane in planes:
             components = node.components(plane)
-            layer_info.append({
-                "plane_name": plane,
-                "components": list(components) if components else [],
-                "depth": str(node.planeDepth(plane)) if hasattr(node, "planeDepth") else None,
-            })
+            layer_info.append(
+                {
+                    "plane_name": plane,
+                    "components": list(components) if components else [],
+                    "depth": str(node.planeDepth(plane)) if hasattr(node, "planeDepth") else None,
+                }
+            )
         result["layers"] = layer_info
         result["layer_count"] = len(layer_info)
-    except AttributeError:
+    except (AttributeError, hou.OperationFailed):
         result["layers"] = []
         result["layer_count"] = 0
 
-    # Resolution
     try:
         result["x_resolution"] = node.xRes()
         result["y_resolution"] = node.yRes()
-    except AttributeError:
+    except (AttributeError, hou.OperationFailed):
         result["x_resolution"] = None
         result["y_resolution"] = None
-
-    # Try Copernicus-style layer() method
-    try:
-        layer_data = node.layer(output_index)
-        if layer_data is not None:
-            result["copernicus_layer"] = {
-                "type": str(type(layer_data).__name__),
-                "available": True,
-            }
-        else:
-            result["copernicus_layer"] = {"available": False}
-    except (AttributeError, Exception):
-        result["copernicus_layer"] = {"available": False}
 
     return result
 

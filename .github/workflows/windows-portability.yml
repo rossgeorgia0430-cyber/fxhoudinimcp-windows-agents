@@ -1,0 +1,47 @@
+name: Windows portability
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  clean-windows-bootstrap:
+    name: Python ${{ matrix.python }} / clean Unicode checkout
+    runs-on: windows-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python: ["3.10", "3.12"]
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: "fxhoudini mcp 中文"
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+
+      - name: Bootstrap from a path with spaces and Unicode
+        working-directory: "fxhoudini mcp 中文"
+        shell: powershell
+        run: |
+          .\scripts\windows\bootstrap.ps1 `
+            -Python (Get-Command python.exe).Source `
+            -Dev `
+            -SkipHoudiniPackage
+
+      - name: Verify portable Windows contracts
+        working-directory: "fxhoudini mcp 中文"
+        shell: powershell
+        run: |
+          .\.venv\Scripts\python.exe -m pytest -q tests\test_windows_portability.py
+
+      - name: Run non-Houdini test suite
+        working-directory: "fxhoudini mcp 中文"
+        shell: powershell
+        run: |
+          .\.venv\Scripts\python.exe -m pytest -q tests --ignore=tests\integration

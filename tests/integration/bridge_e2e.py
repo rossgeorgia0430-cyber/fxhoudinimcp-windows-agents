@@ -1,55 +1,37 @@
 #!/usr/bin/env python3
-"""End-to-end transport test: real hwebserver in hython, real HoudiniBridge.
+"""End-to-end transport test against a running graphical Houdini session.
 
-    python tests/integration/bridge_e2e.py
+    python tests/integration/bridge_e2e.py --port 18100
 
-Spawns one hython process that runs the actual in-Houdini server
-(fxhoudinimcp_server.startup), then drives it over HTTP with the MCP
-server's own async HoudiniBridge — the exact production path. Exercises
-success envelopes, structured errors, and scene mutation round-trips.
+Drives the real Houdini hwebserver through the MCP server's own async
+``HoudiniBridge``. The target must be a graphical session: Hython has no UI
+event loop, so its hwebserver can answer a startup health probe but cannot
+reliably service subsequent requests. The Windows full-validation script
+launches an isolated GUI target before invoking this test.
 """
 
 from __future__ import annotations
 
-# Built-in
+import argparse
 import asyncio
-import os
-import socket
-import subprocess
 import sys
-import time
 from pathlib import Path
+
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(REPO_ROOT / "python"))
-sys.path.insert(0, str(REPO_ROOT / "tests"))
-
-from run_integration import find_hython  # noqa: E402
-
-_SERVER_SNIPPET = """
-import sys
-sys.path.insert(0, {scripts!r})
-import fxhoudinimcp_server.startup as startup
-startup.start()  # blocks in hython, serving requests
-import time
-time.sleep(3600)
-"""
 
 
-def _free_port() -> int:
-    with socket.socket() as sock:
-        sock.bind(("127.0.0.1", 0))
-        return sock.getsockname()[1]
-
-
-async def _exercise(port: int) -> None:
+async def _exercise(host: str, port: int) -> None:
     from fxhoudinimcp.bridge import HoudiniBridge
     from fxhoudinimcp.errors import FXHoudiniError
 
-    bridge = HoudiniBridge(host="127.0.0.1", port=port)
+    bridge = HoudiniBridge(host=host, port=port)
+    created_path: str | None = None
     try:
         health = await bridge.health_check()
         assert health.get("status") == "ok", health
+        assert health.get("ui_available") is True, health
         print(f"[e2e] health: Houdini {health.get('houdini_version')}")
 
         info = await bridge.execute("scene.get_scene_info")
@@ -60,7 +42,8 @@ async def _exercise(port: int) -> None:
             "nodes.create_node",
             {"parent_path": "/obj", "node_type": "geo", "name": "via_http"},
         )
-        assert created["node_path"] == "/obj/via_http", created
+        created_path = created["node_path"]
+        assert created_path == "/obj/via_http", created
         listed = await bridge.execute(
             "nodes.find_nodes", {"pattern": "via_http"}
         )
@@ -74,9 +57,10 @@ async def _exercise(port: int) -> None:
         print(f"[e2e] large payload ({big['total_count']} types) serialized: ok")
 
         try:
-            await bridge.execute("nodes.create_node", {
-                "parent_path": "/obj", "node_type": "not_a_real_type",
-            })
+            await bridge.execute(
+                "nodes.create_node",
+                {"parent_path": "/obj", "node_type": "not_a_real_type"},
+            )
         except FXHoudiniError as exc:
             assert "not_a_real_type" in str(exc), exc
             print("[e2e] structured error surfaced through the bridge: ok")
@@ -90,53 +74,21 @@ async def _exercise(port: int) -> None:
         else:
             raise AssertionError("unknown command did not raise")
     finally:
+        if created_path:
+            await bridge.execute("nodes.delete_node", {"node_path": created_path})
         await bridge.close()
 
 
 def main() -> int:
-    hython = find_hython()
-    port = _free_port()
-    scripts = str(REPO_ROOT / "houdini" / "scripts" / "python")
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--host", default="127.0.0.1")
+    parser.add_argument("--port", type=int, required=True)
+    args = parser.parse_args()
 
-    env = os.environ.copy()
-    env["FXHOUDINIMCP_PORT"] = str(port)
-    server = subprocess.Popen(
-        [str(hython), "-c", _SERVER_SNIPPET.format(scripts=scripts)],
-        env=env,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.STDOUT,
-        text=True,
-    )
-    print(f"[e2e] hython server starting on port {port} (pid {server.pid})")
-
-    try:
-        # Wait for the server to answer before testing. Any HTTP status
-        # (even 4xx for a GET on the POST-only endpoint) means it is up.
-        import urllib.error
-        import urllib.request
-
-        deadline = time.time() + 120
-        while True:
-            if server.poll() is not None:
-                output = server.stdout.read() if server.stdout else ""
-                raise RuntimeError(f"server exited early:\n{output}")
-            if time.time() >= deadline:
-                raise RuntimeError("server never became reachable")
-            try:
-                urllib.request.urlopen(
-                    f"http://127.0.0.1:{port}/api", timeout=0.5
-                )
-                break
-            except urllib.error.HTTPError:
-                break
-            except Exception:
-                time.sleep(0.5)
-
-        asyncio.run(_exercise(port))
-        print("[e2e] ALL TRANSPORT CHECKS PASSED")
-        return 0
-    finally:
-        server.kill()
+    print(f"[e2e] exercising GUI Houdini bridge at {args.host}:{args.port}")
+    asyncio.run(_exercise(args.host, args.port))
+    print("[e2e] ALL TRANSPORT CHECKS PASSED")
+    return 0
 
 
 if __name__ == "__main__":

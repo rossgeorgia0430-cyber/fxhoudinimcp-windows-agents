@@ -9,6 +9,7 @@ from typing import Any
 from mcp.server.fastmcp import Context
 
 # Internal
+from fxhoudinimcp._specs import KeyframeSpec
 from fxhoudinimcp.server import mcp, _get_bridge
 
 
@@ -51,7 +52,7 @@ async def set_keyframes(
     ctx: Context,
     node_path: str,
     parm_name: str,
-    keyframes: list[dict],
+    keyframes: list[KeyframeSpec],
 ) -> dict:
     """Batch-set multiple keyframes on a parameter.
 
@@ -66,7 +67,12 @@ async def set_keyframes(
         {
             "node_path": node_path,
             "parm_name": parm_name,
-            "keyframes": keyframes,
+            "keyframes": [
+                keyframe.model_dump(exclude_none=True)
+                if isinstance(keyframe, KeyframeSpec)
+                else keyframe
+                for keyframe in keyframes
+            ],
         },
     )
 

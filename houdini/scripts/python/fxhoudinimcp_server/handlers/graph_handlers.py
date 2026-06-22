@@ -128,9 +128,11 @@ def build_network(
     """Build a whole node network atomically, with upfront validation.
 
     Every node type, parameter name, and input reference in the spec is
-    validated against the running Houdini BEFORE anything is created —
-    invalid specs return the full error list and mutate nothing. With
-    dry_run=True only the validation runs.
+    validated before the requested graph is built. Parameter discovery uses
+    transient probe nodes in the requested parent because Houdini only exposes
+    some dynamic parm tuples after node construction. ``dry_run=True`` never
+    creates the requested graph, but is not a strict no-side-effect operation
+    for HDAs with creation callbacks.
 
     Args:
         parent_path: Network to build inside (e.g. "/obj/geo1").
@@ -144,7 +146,8 @@ def build_network(
                 first, then children of parent, then absolute paths.
             flags (dict): display/render/bypass/template booleans.
             color (list[3]) and comment (str): network annotations.
-        dry_run: Validate only; never mutates the scene.
+        dry_run: Validate without creating the requested graph. Transient
+            probe nodes are created and destroyed for parameter discovery.
         layout: Lay out the parent network afterwards (respects the
             FXHOUDINIMCP_AUTO_LAYOUT toggle).
     """
@@ -266,6 +269,11 @@ def build_network(
         return {
             "valid": True,
             "dry_run": True,
+            "validation_mode": "transient_probe_nodes",
+            "scene_mutation": (
+                "no requested graph; transient validation nodes were created "
+                "and destroyed"
+            ),
             "validated_nodes": len(nodes),
             "validated_types": sorted(
                 t.name() for t in resolved_types.values()
@@ -274,15 +282,23 @@ def build_network(
 
     ###### Phase 2: build (atomic — any failure rolls back)
 
-    created: dict[str, hou.Node] = {}
+    # Index-aligned with `nodes` so parms/inputs always apply to the right
+    # node. A separate name->node map handles input source resolution; keying
+    # the build list by name (as before) silently mis-paired specs when an
+    # explicit name collided with an earlier sibling's auto-name.
+    created_nodes: list[hou.Node] = []
+    name_map: dict[str, hou.Node] = {}
     try:
         for spec in nodes:
             node = parent.createNode(
                 resolved_types[spec["type"]].name(), spec.get("name")
             )
-            created[spec.get("name") or node.name()] = node
+            created_nodes.append(node)
+            name_map.setdefault(node.name(), node)
+            if spec.get("name"):
+                name_map[spec["name"]] = node  # explicit spec names win
 
-        for spec, node in zip(nodes, created.values(), strict=False):
+        for spec, node in zip(nodes, created_nodes, strict=True):
             for parm_name, value in (spec.get("parms") or {}).items():
                 try:
                     _apply_parm(node, parm_name, value)
@@ -298,7 +314,7 @@ def build_network(
                 else:
                     source_name, source_output = entry, 0
                 source = (
-                    created.get(source_name)
+                    name_map.get(source_name)
                     or parent.node(str(source_name))
                     or hou.node(str(source_name))
                 )
@@ -318,7 +334,7 @@ def build_network(
                 node.setComment(spec["comment"])
                 node.setGenericFlag(hou.nodeFlag.DisplayComment, True)
     except Exception as exc:
-        for node in created.values():
+        for node in created_nodes:
             with contextlib.suppress(Exception):
                 node.destroy()
         return {
@@ -334,11 +350,11 @@ def build_network(
 
     display = parent.displayNode() if hasattr(parent, "displayNode") else None
     if display is None:
-        display = list(created.values())[-1]
+        display = created_nodes[-1]
     with contextlib.suppress(hou.OperationFailed):
         display.cook(force=False)
 
-    reports = [_node_report(node) for node in created.values()]
+    reports = [_node_report(node) for node in created_nodes]
     error_nodes = [r["path"] for r in reports if r["errors"]]
     return {
         "valid": True,

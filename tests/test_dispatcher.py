@@ -66,7 +66,10 @@ class TestDispatch:
         result = dispatch("nonexistent.command", {})
         assert result["status"] == "error"
         assert result["error"]["code"] == "UNKNOWN_COMMAND"
-        assert "available_commands" in result["error"]
+        # The full command list is no longer dumped (it bloated every error);
+        # a count plus did-you-mean suggestions replace it.
+        assert "available_commands" not in result["error"]
+        assert "command_count" in result["error"]
 
     def test_handler_exception(self):
         def bad_handler(**_):
@@ -78,7 +81,8 @@ class TestDispatch:
         assert result["status"] == "error"
         assert result["error"]["code"] == "ValueError"
         assert "something went wrong" in result["error"]["message"]
-        assert "traceback" in result["error"]
+        assert result["error"]["retryable"] is False
+        assert "traceback" not in result["error"]
 
     def test_timing_always_present(self):
         register_handler("test.noop", lambda **_: {})

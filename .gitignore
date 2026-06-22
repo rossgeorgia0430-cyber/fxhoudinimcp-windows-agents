@@ -20,6 +20,7 @@ env/
 .ruff_cache/
 .mypy_cache/
 htmlcov/
+.artifacts/
 .coverage
 
 # Node
@@ -42,3 +43,4 @@ Thumbs.db
 .cursor/
 .aider*
 .copilot/
+AGENT_INTERFACE_REVIEW.md

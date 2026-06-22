@@ -36,14 +36,21 @@ async def cook_top_node(
     node_path: str,
     block: bool = True,
     generate_only: bool = False,
+    timeout: Optional[float] = None,
 ) -> dict:
     """Cook a TOP node to execute its work items.
+
+    A blocking cook (block=True) ties up Houdini's main thread for the whole
+    graph; for cooks longer than ~100s either raise `timeout`, or pass
+    block=False and poll get_work_item_states until the counts settle.
 
     Args:
         ctx: MCP context.
         node_path: TOP node path.
         block: Wait for cooking to complete.
         generate_only: Only generate work items, do not cook.
+        timeout: Operation budget in seconds for a blocking cook. Omit for the
+            default (120s); raise it for large graphs.
     """
     bridge = _get_bridge(ctx)
     return await bridge.execute(
@@ -53,6 +60,7 @@ async def cook_top_node(
             "block": block,
             "generate_only": generate_only,
         },
+        timeout=timeout,
     )
 
 

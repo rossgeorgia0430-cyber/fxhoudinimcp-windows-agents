@@ -7,7 +7,6 @@ All functions run on the main thread via the dispatcher.
 from __future__ import annotations
 
 # Built-in
-import math
 import random
 from typing import Any
 

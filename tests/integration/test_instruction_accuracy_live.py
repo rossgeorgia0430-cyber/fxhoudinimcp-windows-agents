@@ -1,8 +1,8 @@
-"""Verify the node names advertised in server_instructions.md exist.
+"""Keep server guidance version-accurate without a stale node catalogue.
 
-The instructions tell assistants to trust specific built-in node names
-(the COMMONLY MISSED NODE DOMAINS lists). Any name that does not exist
-in this Houdini version is guidance that makes the assistant hallucinate.
+The compact instructions tell agents to discover node types from the running
+Houdini session. If static node names are ever added back, they still have to
+exist in the installed Houdini version.
 """
 
 from __future__ import annotations
@@ -77,7 +77,6 @@ def _exists(category_types: dict, name: str) -> bool:
 
 def test_every_advertised_node_type_exists():
     claims = _claimed_names()
-    assert len(claims) > 150, f"parser broke, only {len(claims)} claims found"
 
     categories = hou.nodeTypeCategories()
     missing: list[str] = []
@@ -100,3 +99,9 @@ def test_every_advertised_node_type_exists():
         f"server_instructions.md advertises {len(missing)} node types that "
         f"do not exist in {hou.applicationVersionString()}: {missing}"
     )
+
+
+def test_instructions_put_runtime_discovery_in_the_initial_guidance():
+    initial = _MD.read_text(encoding="utf-8")[:512]
+    assert "list_node_types" in initial
+    assert "get_node_card" in initial

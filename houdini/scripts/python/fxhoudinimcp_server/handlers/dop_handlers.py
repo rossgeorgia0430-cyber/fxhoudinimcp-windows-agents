@@ -325,7 +325,7 @@ def _get_dop_relationships(node_path: str) -> dict:
 
 def _step_simulation(node_path: str, steps: int = 1) -> dict:
     """Advance the simulation by N frames."""
-    node = _get_dop_node(node_path)
+    _get_dop_node(node_path)
     # Ensure the node is a DOP network with a simulation
     _get_simulation(node_path)
 
@@ -348,7 +348,7 @@ def _step_simulation(node_path: str, steps: int = 1) -> dict:
 
 def _reset_simulation(node_path: str) -> dict:
     """Reset the simulation to its initial state."""
-    node = _get_dop_node(node_path)
+    _get_dop_node(node_path)
     sim = _get_simulation(node_path)
 
     # Attempt to clear the simulation cache
@@ -370,7 +370,7 @@ def _reset_simulation(node_path: str) -> dict:
 
 def _get_sim_memory_usage(node_path: str) -> dict:
     """Get a detailed memory breakdown for the simulation."""
-    node = _get_dop_node(node_path)
+    _get_dop_node(node_path)
     sim = _get_simulation(node_path)
 
     # Total memory

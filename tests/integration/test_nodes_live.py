@@ -81,6 +81,22 @@ class TestWiring:
         call("nodes.disconnect_node", node_path=x, input_index=0)
         assert hou.node(x).inputs() == ()
 
+    def test_invalid_reorder_keeps_every_connection(self, call):
+        geo = _make_geo(call)
+        a = call("nodes.create_node", parent_path=geo, node_type="box")["node_path"]
+        b = call("nodes.create_node", parent_path=geo, node_type="sphere")["node_path"]
+        merge = call("nodes.create_node", parent_path=geo, node_type="merge")["node_path"]
+        call("nodes.connect_nodes", source_path=a, dest_path=merge, input_index=0)
+        call("nodes.connect_nodes", source_path=b, dest_path=merge, input_index=1)
+        error = call(
+            "nodes.reorder_inputs",
+            node_path=merge,
+            new_order=[1],
+            expect_error=True,
+        )
+        assert "permutation" in error["message"]
+        assert [node.path() for node in hou.node(merge).inputs()] == [a, b]
+
     def test_set_node_flags_bypass_is_real(self, call):
         geo = _make_geo(call)
         box = call("nodes.create_node", parent_path=geo, node_type="box")["node_path"]

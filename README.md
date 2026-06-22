@@ -9,7 +9,7 @@
   <p align="center">
     The most comprehensive MCP server for SideFX Houdini.
     <br/>
-    179 tools across 22 categories, covering every major Houdini context.
+    180 tools across 22 categories, covering every major Houdini context.
     <br/><br/>
   </p>
 
@@ -43,6 +43,7 @@
 - [Features](#features)
 - [Architecture](#architecture)
 - [Installation](#installation)
+- [Codex + Windows](docs/codex-windows.md)
 - [Usage](#usage)
 - [Environment Variables](#environment-variables)
 - [Development](#development)
@@ -53,7 +54,13 @@
 
 A comprehensive [MCP](https://modelcontextprotocol.io/) (Model Context Protocol) server for [SideFX Houdini](https://www.sidefx.com/). Connects AI assistants like Claude directly to Houdini's Python API, enabling natural language control over scene building, simulation setup, rendering, and more.
 
-**179 tools**, **8 resources**, and **6 workflow prompts** out of the box.
+This Windows/Codex fork is based on
+[healkeiser/fxhoudinimcp](https://github.com/healkeiser/fxhoudinimcp). The
+upstream project, license, and changelog remain credited; fork-specific work is
+focused on portable Windows launchers, Codex MCP registration, validation, and
+agent-facing contracts.
+
+**180 tools**, **8 resources**, and **6 workflow prompts** out of the box.
 
 <!-- FEATURES -->
 ## Features
@@ -78,7 +85,7 @@ A comprehensive [MCP](https://modelcontextprotocol.io/) (Model Context Protocol)
 | **Viewport/UI** | 13 | Pane management, screenshots, status messages, error detection |
 | **Scene Context** | 8 | Network overview, cook chain, selection, scene summary, error analysis |
 | **Workflows** | 8 | One-call Pyro/RBD/FLIP/Vellum setup, SOP chains, render config |
-| **Materials** | 5 | List, inspect, create materials and shader networks |
+| **Materials** | 6 | List, inspect, create, and assign materials and shader networks |
 | **CHOPs** | 4 | Channel data, CHOP nodes, export channels to parameters |
 | **Cache** | 4 | List, inspect, clear, write file caches |
 | **Takes** | 4 | List, create, switch takes with parameter overrides |
@@ -97,7 +104,7 @@ flowchart LR
 
     subgraph MCP[" ⚡ FXHoudini MCP Server "]
         direction TB
-        B1("🔧 179 tools")
+        B1("🔧 180 tools")
         B2("📦 8 Resources")
         B3("💬 6 Prompts")
     end
@@ -111,7 +118,7 @@ flowchart LR
     end
 
     Client -. "MCP Protocol · stdio" .-> MCP
-    MCP -. "HTTP / JSON · port 8100" .-> Houdini
+    MCP -. "HTTP / JSON · port 8100 default" .-> Houdini
 
     classDef clientBox fill:#f0f4ff,stroke:#b8c9e8,stroke-width:1px,color:#2d3748,rx:12,ry:12
     classDef mcpBox fill:#eef6f0,stroke:#a8d5b8,stroke-width:1px,color:#2d3748,rx:12,ry:12
@@ -149,6 +156,10 @@ Uses Houdini's built-in `hwebserver`. No custom socket servers, no rpyc. Uses `h
 pip install fxhoudinimcp
 ```
 
+PyPI installs the Python MCP server only. The Houdini plugin files live in the
+source checkout, so install the plugin from a clone or release artifact before
+expecting Houdini to auto-start the bridge.
+
 **From source:**
 
 ```shell
@@ -166,11 +177,13 @@ pip install -e ".[dev]"
 **Option A: Houdini package (recommended)**
 
 1. Copy `houdini/fxhoudinimcp.json` to your Houdini packages directory:
-   - Windows: `%USERPROFILE%/Documents/houdiniXX.X/packages/`
+   - Windows: the current user's Documents known folder, under `houdiniXX.X/packages/`
    - Linux: `~/houdiniXX.X/packages/`
    - macOS: `~/Library/Preferences/houdini/XX.X/packages/`
 
-2. Edit the JSON file to set `FXHOUDINIMCP` to point to the `houdini` directory in this repo.
+2. Edit the JSON file to set `FXHOUDINIMCP` to the absolute `houdini` directory
+   in this repo. On Windows, prefer the generated package from
+   `scripts/windows/install-houdini-package.ps1`.
 
 **Option B: Manual copy**
 
@@ -226,9 +239,33 @@ Or to scope it to a single project, add a `.mcp.json` in the project root:
 > python -c "import sys; print(sys.executable)"
 > ```
 >
-> Then use the result in your config, e.g. `"command": "C:\\Program Files\\Python311\\python.exe"`.
+> Then use the result in your config, e.g. `"command": "<absolute path to python.exe>"`.
 > After any config change, fully quit Claude Desktop (system tray → Quit) and relaunch.
 <!-- --8<-- [end:installation] -->
+
+### Codex + Windows fork
+
+This fork includes project-scoped Codex and Claude Code MCP profiles and portable Windows
+launchers. From PowerShell in any clone location:
+
+```powershell
+.\scripts\windows\bootstrap.ps1
+.\scripts\windows\start-houdini-fork.ps1 -Visible
+```
+
+Bootstrap detects Python 3.10+ and the newest installed Houdini, creates a
+machine-local `.venv`, and installs the uniquely named
+`fxhoudinimcp-codex-windows.json` package in the Windows Documents known
+folder. It does not overwrite the standard `fxhoudinimcp.json` package or
+change global package preferences. See [Codex + Windows](docs/codex-windows.md)
+for path/version overrides, uninstall/restore, and full validation.
+The Windows/Codex profile intentionally uses port `18100` to avoid colliding
+with a standard upstream `8100` install; keep `HOUDINI_PORT` and
+`FXHOUDINIMCP_PORT` matched.
+
+Claude Code reads the shared `.mcp.json` project server named
+`fxhoudinimcp`. New clones may show it as pending approval until the user runs
+`claude` once in the project and approves the server.
 
 <!-- USAGE -->
 ## Usage
@@ -264,6 +301,9 @@ Once connected, your AI assistant can:
 | `MCP_TRANSPORT` | `stdio` | MCP transport (`stdio` or `streamable-http`) |
 | `LOG_LEVEL` | `INFO` | Logging level |
 
+The Windows/Codex launcher uses `18100` by default. The upstream/default port
+is `8100`; use either value as long as Houdini and the MCP process agree.
+
 <!-- DEVELOPMENT -->
 ## Development
 
@@ -285,7 +325,7 @@ python tests/run_integration.py
 ```
 
 Unit tests mock `hou` and run anywhere. The integration suite in
-`tests/integration/` executes all 179 commands against live Houdini via
+`tests/integration/` executes all 179 backend commands against live Houdini via
 `hython` — including end-to-end user scenarios (procedural modeling,
 simulation, animation, lookdev) — and prints per-command timing and
 coverage reports; it is skipped automatically when `hou` is not
@@ -298,14 +338,14 @@ server's own bridge).
 
 1. **Houdini Plugin** (`houdini/`): Runs inside Houdini's Python environment. Registers `@hwebserver.apiFunction` endpoints that receive JSON commands. Uses `hdefereval.executeInMainThreadWithResult()` to safely execute `hou.*` calls on the main thread.
 
-2. **MCP Server** (`python/fxhoudinimcp/`): A standalone Python process using FastMCP. Exposes 179 tools, 8 resources, and 6 prompts via the MCP protocol. Forwards tool calls to Houdini over HTTP.
+2. **MCP Server** (`python/fxhoudinimcp/`): A standalone Python process using FastMCP. Exposes 180 tools, 8 resources, and 6 prompts via the MCP protocol. Forwards tool calls to Houdini over HTTP.
 
 3. **Bridge** (`python/fxhoudinimcp/bridge.py`): Async HTTP client that sends commands to Houdini's hwebserver and deserializes responses. Handles connection errors and timeouts.
 
 <!-- CONTACT -->
 ## Contact
 
-Project Link: [fxhoudinimcp](https://github.com/healkeiser/fxhoudinimcp)
+Upstream Project Link: [healkeiser/fxhoudinimcp](https://github.com/healkeiser/fxhoudinimcp)
 
 <p align='center'>
   <!-- GitHub profile -->

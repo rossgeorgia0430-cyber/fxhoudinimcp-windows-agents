@@ -5,7 +5,7 @@ build-backend = "hatchling.build"
 [project]
 name = "fxhoudinimcp"
 dynamic = ["version"]
-description = "Comprehensive MCP server for SideFX Houdini with 179 tools covering SOPs, LOPs/USD, DOPs, PDG/TOPs, COPs, HDAs, animation, rendering, VEX, and more"
+description = "Comprehensive MCP server for SideFX Houdini with 180 tools covering SOPs, LOPs/USD, DOPs, PDG/TOPs, COPs, HDAs, animation, rendering, VEX, and more"
 readme = "README.md"
 license = { text = "MIT" }
 requires-python = ">=3.10"
@@ -33,6 +33,7 @@ dev = [
     "pytest-asyncio>=0.24",
     "pytest-cov>=5.0",
     "ruff>=0.8.0",
+    "Pillow>=10.0",
 ]
 mkdocs = [
     "mkdocs-material",

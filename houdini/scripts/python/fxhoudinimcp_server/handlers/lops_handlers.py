@@ -18,7 +18,7 @@ from fxhoudinimcp_server.dispatcher import register_handler
 
 # USD modules -- may not be available in all Houdini configurations
 try:
-    from pxr import Usd, UsdGeom, UsdShade, Sdf, Gf, Kind, Vt
+    from pxr import Usd, UsdGeom, UsdShade, Sdf, Gf, Vt
     HAS_PXR = True
 except ImportError:
     HAS_PXR = False

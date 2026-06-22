@@ -62,6 +62,7 @@ class TestBuildNetworkValidation:
         assert any(
             t.startswith("copytopoints") for t in result["validated_types"]
         )
+        assert result["validation_mode"] == "transient_probe_nodes"
         assert len(hou.node(geo).children()) == 0
 
 

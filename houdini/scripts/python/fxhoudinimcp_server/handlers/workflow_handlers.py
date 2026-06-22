@@ -8,6 +8,8 @@ building, and render configuration.
 from __future__ import annotations
 
 # Built-in
+import functools
+import threading
 from typing import Any
 
 # Third-party
@@ -16,6 +18,13 @@ import hou
 # Internal
 from fxhoudinimcp_server.config import layout_if_enabled
 from fxhoudinimcp_server.dispatcher import register_handler
+
+# Per-call collector for parameters that _set_parm_safe could not set. The
+# builders below set dozens of parms best-effort; without this the failures
+# only printed to a Houdini console the agent never sees, so a material could
+# come back grey or a render mis-sized while the result still said "success".
+# Dispatch is serial on the main thread, but a thread-local keeps it clean.
+_parm_warnings = threading.local()
 
 
 ###### Helpers
@@ -70,17 +79,91 @@ def _ensure_out_context() -> hou.Node:
     return out
 
 
-def _set_parm_safe(node: hou.Node, parm_name: str, value: Any) -> bool:
-    """Set a parameter value if the parameter exists. Returns True on success."""
-    parm = node.parm(parm_name)
-    if parm is not None:
-        try:
-            parm.set(value)
+def _record_parm_warning(message: str) -> None:
+    """Record a best-effort parameter failure for the current handler call."""
+    bucket = getattr(_parm_warnings, "items", None)
+    if bucket is not None:
+        bucket.append(message)
+
+
+def _set_parm_safe(
+    node: hou.Node, parm_name: str, value: Any, *, record_failure: bool = True
+) -> bool:
+    """Set a parameter (or parm tuple) if it exists. Returns True on success.
+
+    Failures are recorded via _record_parm_warning so the wrapping builder can
+    surface them to the caller instead of swallowing them to the console.
+    """
+    target = node.parm(parm_name) or node.parmTuple(parm_name)
+    if target is None:
+        if record_failure:
+            _record_parm_warning(f"{node.path()}: parameter '{parm_name}' not found")
+        return False
+    try:
+        target.set(value)
+        return True
+    except Exception as e:
+        if record_failure:
+            _record_parm_warning(
+                f"{node.path()}: could not set '{parm_name}'={value!r}: {e}"
+            )
+        return False
+
+
+def _set_first_available(
+    node: hou.Node, parm_names: tuple[str, ...], value: Any, label: str
+) -> bool:
+    """Set the first cross-version parameter alias that exists.
+
+    Missing aliases are expected probes, not warnings. A single clear warning
+    is emitted only when no candidate can be written.
+    """
+    for parm_name in parm_names:
+        if _set_parm_safe(node, parm_name, value, record_failure=False):
             return True
-        except Exception as e:
-            print(f"[workflow] Warning: could not set {parm_name}={value} on {node.path()}: {e}")
-            return False
+    _record_parm_warning(
+        f"{node.path()}: none of the {label} parameters exist: {list(parm_names)}"
+    )
     return False
+
+
+def _set_all_available(
+    node: hou.Node, parm_names: tuple[str, ...], value: Any, label: str
+) -> bool:
+    """Set every present alias and warn only when none exists."""
+    applied = any(
+        _set_parm_safe(node, parm_name, value, record_failure=False)
+        for parm_name in parm_names
+    )
+    if not applied:
+        _record_parm_warning(
+            f"{node.path()}: none of the {label} parameters exist: {list(parm_names)}"
+        )
+    return applied
+
+
+def _with_parm_warnings(handler):
+    """Wrap a builder so unset parameters surface in its result dict.
+
+    Resets the per-call collector, runs the handler, and if any parameters
+    failed to set, injects ``warnings`` (the messages) and
+    ``unset_parameters`` (the count) into the returned dict.
+    """
+
+    @functools.wraps(handler)
+    def wrapper(*args: Any, **kwargs: Any) -> Any:
+        _parm_warnings.items = []
+        try:
+            result = handler(*args, **kwargs)
+        finally:
+            collected = _parm_warnings.items
+            _parm_warnings.items = None
+        if isinstance(result, dict) and collected:
+            result.setdefault("warnings", []).extend(collected)
+            result["unset_parameters"] = len(collected)
+        return result
+
+    return wrapper
 
 
 ###### workflow.setup_pyro_sim
@@ -187,10 +270,13 @@ def _setup_pyro_sim_dop(
         source_vol = dopnet.createNode("sourcevolume", "source_volume1")
         all_nodes.append(source_vol.path())
         # Point the source volume at the Object Merge SOP
-        for parm_name in ("sop_path", "soppath", "geometry"):
-            if _set_parm_safe(source_vol, parm_name, objmerge.path()):
-                print(f"[workflow] Set source volume {parm_name} = {objmerge.path()}")
-                break
+        if _set_first_available(
+            source_vol,
+            ("sop_path", "soppath", "geometry"),
+            objmerge.path(),
+            "source geometry",
+        ):
+            print(f"[workflow] Set source volume geometry = {objmerge.path()}")
     except hou.OperationFailed:
         print("[workflow] Warning: sourcevolume not available, skipping")
 
@@ -441,9 +527,12 @@ def _setup_rbd_sim(
         solver_path = dopnet.path()
 
         rbdobj = dopnet.createNode("rbdpackedobject", "rbdobject1")
-        for parm_name in ("soppath", "sop_path"):
-            if _set_parm_safe(rbdobj, parm_name, last_sop.path()):
-                break
+        _set_first_available(
+            rbdobj,
+            ("soppath", "sop_path"),
+            last_sop.path(),
+            "source geometry",
+        )
         all_nodes.append(rbdobj.path())
 
         rbdsolver = dopnet.createNode("rbdsolver", "rbdsolver1")
@@ -1080,32 +1169,33 @@ def _setup_render(
     # -- Step 3: Configure output path
     print(f"[workflow] Setting output path: {output_path}")
     # Try common parameter names for different ROP types
-    output_set = False
-    for parm_name in ("picture", "vm_picture", "outputimage", "ar_picture"):
-        if _set_parm_safe(rop, parm_name, output_path):
-            output_set = True
-            break
+    output_set = _set_first_available(
+        rop,
+        ("picture", "vm_picture", "outputimage", "ar_picture"),
+        output_path,
+        "output path",
+    )
     if not output_set:
         print("[workflow] Warning: could not find output path parameter on ROP")
 
     # -- Step 4: Configure resolution
     print(f"[workflow] Setting resolution: {resolution[0]}x{resolution[1]}")
     # Resolution can be on the ROP or on the camera
-    _set_parm_safe(rop, "resx", resolution[0])
-    _set_parm_safe(rop, "resy", resolution[1])
-    _set_parm_safe(rop, "res_overridex", resolution[0])
-    _set_parm_safe(rop, "res_overridey", resolution[1])
+    _set_all_available(rop, ("resx", "res_overridex"), resolution[0], "width")
+    _set_all_available(rop, ("resy", "res_overridey"), resolution[1], "height")
 
     # -- Step 5: Configure samples
     print(f"[workflow] Setting samples: {samples}")
-    for parm_name in ("vm_samples", "samples", "samplesperpixel", "vm_samplesx", "karma_samples"):
-        _set_parm_safe(rop, parm_name, samples)
+    _set_all_available(
+        rop,
+        ("vm_samples", "samples", "samplesperpixel", "vm_samplesx", "karma_samples"),
+        samples,
+        "samples",
+    )
 
     # -- Step 6: Set camera path
     print(f"[workflow] Setting camera: {camera}")
-    for parm_name in ("camera", "cam", "viewcamera"):
-        if _set_parm_safe(rop, parm_name, camera):
-            break
+    _set_first_available(rop, ("camera", "cam", "viewcamera"), camera, "camera")
 
     # Layout
     layout_if_enabled(out)
@@ -1127,11 +1217,11 @@ def _setup_render(
 
 ###### Registration
 
-register_handler("workflow.setup_pyro_sim", _setup_pyro_sim)
-register_handler("workflow.setup_rbd_sim", _setup_rbd_sim)
-register_handler("workflow.setup_flip_sim", _setup_flip_sim)
-register_handler("workflow.setup_vellum_sim", _setup_vellum_sim)
-register_handler("workflow.create_material", _create_material)
-register_handler("workflow.assign_material", _assign_material)
-register_handler("workflow.build_sop_chain", _build_sop_chain)
-register_handler("workflow.setup_render", _setup_render)
+register_handler("workflow.setup_pyro_sim", _with_parm_warnings(_setup_pyro_sim))
+register_handler("workflow.setup_rbd_sim", _with_parm_warnings(_setup_rbd_sim))
+register_handler("workflow.setup_flip_sim", _with_parm_warnings(_setup_flip_sim))
+register_handler("workflow.setup_vellum_sim", _with_parm_warnings(_setup_vellum_sim))
+register_handler("workflow.create_material", _with_parm_warnings(_create_material))
+register_handler("workflow.assign_material", _with_parm_warnings(_assign_material))
+register_handler("workflow.build_sop_chain", _with_parm_warnings(_build_sop_chain))
+register_handler("workflow.setup_render", _with_parm_warnings(_setup_render))

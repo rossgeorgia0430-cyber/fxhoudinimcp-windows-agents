@@ -13,6 +13,7 @@ from typing import Any
 from mcp.server.fastmcp import Context
 
 # Internal
+from fxhoudinimcp._specs import NodeSpec
 from fxhoudinimcp.server import _get_bridge, mcp
 
 
@@ -20,7 +21,7 @@ from fxhoudinimcp.server import _get_bridge, mcp
 async def build_network(
     ctx: Context,
     parent_path: str,
-    nodes: list[dict[str, Any]],
+    nodes: list[NodeSpec],
     dry_run: bool = False,
     layout: bool = True,
 ) -> dict:
@@ -28,10 +29,11 @@ async def build_network(
     to construct anything of 3+ nodes (massively faster than node-by-node
     calls, and either the whole network builds or nothing does).
 
-    Every node type, parameter name, and input reference is validated
-    against the running Houdini BEFORE anything is created; errors come
-    back with did-you-mean suggestions. Use dry_run=True to prove a plan
-    when using unfamiliar node types. The result includes cooked
+    Every node type, parameter name, and input reference is validated before
+    the requested graph is created; errors come back with did-you-mean
+    suggestions. `dry_run=True` validates via transient probe nodes and never
+    creates the requested graph, but is not strict zero-side-effect for HDAs
+    with creation callbacks. The result includes cooked
     evidence: per-node errors and the display node's geometry counts —
     read them instead of assuming success.
 
@@ -45,7 +47,8 @@ async def build_network(
     Args:
         parent_path: Network to build inside (e.g. "/obj/geo1").
         nodes: Ordered node specs (see above).
-        dry_run: Validate the whole spec without creating anything.
+        dry_run: Validate without creating the requested graph; the response
+            identifies its transient probe-node validation mode.
         layout: Lay out the parent network afterwards.
     """
     bridge = _get_bridge(ctx)
@@ -53,7 +56,7 @@ async def build_network(
         "graph.build_network",
         {
             "parent_path": parent_path,
-            "nodes": nodes,
+            "nodes": [n.model_dump(exclude_none=True) for n in nodes],
             "dry_run": dry_run,
             "layout": layout,
         },

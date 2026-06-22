@@ -14,6 +14,7 @@ from mcp.server.fastmcp import Context
 from mcp.types import ImageContent, TextContent
 
 # Internal
+from fxhoudinimcp._types import Value
 from fxhoudinimcp.server import mcp, _get_bridge
 from fxhoudinimcp.tools import result_with_image
 
@@ -85,7 +86,7 @@ async def get_render_settings(ctx: Context, node_path: str) -> dict:
 async def set_render_settings(
     ctx: Context,
     node_path: str,
-    settings: dict[str, Any] = {},
+    settings: dict[str, Value] | None = None,
 ) -> dict:
     """Set render parameters on a ROP node.
 
@@ -96,7 +97,7 @@ async def set_render_settings(
     bridge = _get_bridge(ctx)
     return await bridge.execute(
         "rendering.set_render_settings",
-        {"node_path": node_path, "settings": settings},
+        {"node_path": node_path, "settings": settings or {}},
     )
 
 
@@ -132,18 +133,27 @@ async def start_render(
     ctx: Context,
     node_path: str,
     frame_range: list[float] | None = None,
+    timeout: float | None = None,
 ) -> dict:
     """Render a ROP node.
+
+    This blocks on Houdini's main thread until the render finishes, so any
+    non-trivial render (or a frame range) needs an explicit `timeout` — the
+    default (120s) will abandon the wait while the render keeps going, and the
+    result (output path) is then lost to the client. Size `timeout` to the
+    expected render time, and poll get_render_progress for status.
 
     Args:
         node_path: ROP node path.
         frame_range: [start, end] or [start, end, increment].
+        timeout: Operation budget in seconds. Omit for the default (120s);
+            raise it for real renders.
     """
     bridge = _get_bridge(ctx)
     params: dict[str, Any] = {"node_path": node_path}
     if frame_range is not None:
         params["frame_range"] = frame_range
-    return await bridge.execute("rendering.start_render", params)
+    return await bridge.execute("rendering.start_render", params, timeout=timeout)
 
 
 @mcp.tool()

@@ -2,7 +2,7 @@
 
 ## Overview
 
-fxhoudinimcp exposes **179 tools** across **22 categories**, covering every major Houdini context.
+fxhoudinimcp exposes **180 tools** across **22 categories**, covering every major Houdini context.
 
 Once connected, your AI assistant can:
 
@@ -98,9 +98,9 @@ Network overview, cook chains, selection state, scene summaries, and error analy
 
 One-call Pyro, RBD, FLIP, and Vellum simulation setup. SOP chains and render configuration.
 
-### Materials (5 tools)
+### Materials (6 tools)
 
-List, inspect, and create materials and shader networks.
+List, inspect, create, and assign materials and shader networks.
 
 ### CHOPs (4 tools)
 

@@ -544,10 +544,9 @@ class TestMopUp:
         assert validated["is_valid"] is True, validated
         call(
             "vex.create_vex_expression",
-            node_path=wrangle,
+            node_path="/obj/g",
             parm_name="tx",
-            expression="@Frame",
-            allow_error=True,
+            vex_code="$F",
         )
 
     def test_lops_and_materials_extras(self, call):

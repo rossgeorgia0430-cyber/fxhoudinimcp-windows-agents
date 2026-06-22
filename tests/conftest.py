@@ -3,11 +3,16 @@
 from __future__ import annotations
 
 # Built-in
-import sys
+import os
 from unittest.mock import AsyncMock, MagicMock
 
 # Third-party
 import pytest
+
+# Most contract tests intentionally validate the complete wrapper catalog.
+# Production defaults to the smaller core profile; profile-specific tests use
+# isolated subprocesses so import-time FastMCP registration stays deterministic.
+os.environ.setdefault("FXHOUDINIMCP_TOOL_PROFILE", "full")
 
 
 @pytest.fixture
@@ -15,7 +20,7 @@ def mock_bridge():
     """A mocked HoudiniBridge whose execute() returns a success dict."""
     bridge = AsyncMock()
     bridge.execute = AsyncMock(return_value={"executed": True})
-    bridge.health_check = AsyncMock(return_value={"status": "ok", "houdini_version": "21.0.440"})
+    bridge.health_check = AsyncMock(return_value={"status": "ok", "houdini_version": "99.0.0-test"})
     return bridge
 
 

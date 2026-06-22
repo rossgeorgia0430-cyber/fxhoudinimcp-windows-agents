@@ -3,8 +3,6 @@
 from __future__ import annotations
 
 # Built-in
-from typing import Any
-
 # Third-party
 from mcp.server.fastmcp import Context
 
@@ -97,17 +95,26 @@ async def get_dop_relationships(ctx: Context, node_path: str) -> dict:
 
 
 @mcp.tool()
-async def step_simulation(ctx: Context, node_path: str, steps: int = 1) -> dict:
+async def step_simulation(
+    ctx: Context, node_path: str, steps: int = 1, timeout: float | None = None
+) -> dict:
     """Advance the simulation by a number of frames.
+
+    Each step cooks one DOP frame synchronously on the main thread, so the
+    cost scales with `steps` and sim complexity. For many steps or a heavy sim
+    (FLIP/pyro), raise `timeout`; otherwise the default (120s) may abandon the
+    op mid-advance and leave the sim at an unknown frame.
 
     Args:
         node_path: DOP network node path.
         steps: Number of frames to advance.
+        timeout: Operation budget in seconds. Omit for the default (120s).
     """
     bridge = _get_bridge(ctx)
     return await bridge.execute(
         "dops.step_simulation",
         {"node_path": node_path, "steps": steps},
+        timeout=timeout,
     )
 
 

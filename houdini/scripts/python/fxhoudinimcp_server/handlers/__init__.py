@@ -42,13 +42,21 @@ _HANDLER_MODULES = [
 
 _loaded = []
 _failed = []
+_failure_details = []
 
 for _module_name in _HANDLER_MODULES:
     try:
         importlib.import_module(f".{_module_name}", __package__)
         _loaded.append(_module_name)
-    except Exception:
+    except Exception as _exc:
         _failed.append(_module_name)
+        _failure_details.append(
+            {
+                "module": _module_name,
+                "type": type(_exc).__name__,
+                "message": str(_exc),
+            }
+        )
         logger.warning(
             "Failed to load handler module '%s':\n%s",
             _module_name,
@@ -68,3 +76,20 @@ print(
 
 if _failed:
     print(f"[fxhoudinimcp] Failed modules: {', '.join(_failed)}")
+
+
+def capability_status() -> dict[str, object]:
+    """Return the runtime command surface actually loaded in Houdini.
+
+    The external MCP process can expose a stable tool catalog while a specific
+    Houdini build lacks an optional handler dependency.  Health responses must
+    make that mismatch observable instead of leaving the agent to discover it
+    as an unrelated UNKNOWN_COMMAND later.
+    """
+    return {
+        "handler_modules_total": _total,
+        "handler_modules_loaded": list(_loaded),
+        "handler_modules_failed": list(_failed),
+        "handler_module_failures": [dict(item) for item in _failure_details],
+        "command_count": len(list_commands()),
+    }

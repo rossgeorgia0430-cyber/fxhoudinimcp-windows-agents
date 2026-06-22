@@ -19,6 +19,7 @@ from __future__ import annotations
 
 # Built-in
 import asyncio
+import argparse
 import os
 import sys
 import tempfile
@@ -37,15 +38,46 @@ def record(status: str, name: str, detail: str = "") -> None:
     print(f"[{status}] {name}" + (f" — {detail}" if detail else ""))
 
 
+def _arguments() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--keep", action="store_true", help="Keep the test network")
+    parser.add_argument(
+        "--baseline-dir",
+        help="Directory containing Windows/Houdini visual baseline evidence",
+    )
+    parser.add_argument(
+        "--update-baseline",
+        action="store_true",
+        help="Write the current capture evidence as the baseline",
+    )
+    return parser.parse_args()
+
+
 async def main() -> int:
     from fxhoudinimcp.bridge import HoudiniBridge
     from fxhoudinimcp.errors import FXHoudiniError
 
-    keep = "--keep" in sys.argv
+    args = _arguments()
+    keep = args.keep
     port = int(os.environ.get("HOUDINI_PORT", "8100"))
     bridge = HoudiniBridge(host="127.0.0.1", port=port)
     out_dir = Path(tempfile.mkdtemp(prefix="fxh_gui_"))
     timings: list[tuple[str, float]] = []
+
+    def inspect_visual(name: str, image_path: str) -> None:
+        from visual_assertions import validate_visual_capture
+
+        evidence = validate_visual_capture(
+            name,
+            image_path,
+            baseline_dir=args.baseline_dir,
+            update_baseline=args.update_baseline,
+        )
+        record(
+            "PASS",
+            name,
+            f"{evidence['width']}x{evidence['height']} baseline={evidence.get('baseline', 'pixel-checked')}",
+        )
 
     async def call(command: str, soft: bool = False, **params):
         start = time.perf_counter()
@@ -114,39 +146,26 @@ async def main() -> int:
 
         ###### Real captures
         viewport_png = str(out_dir / "viewport.png").replace("\\", "/")
-        result = await call("viewport.capture_screenshot", output_path=viewport_png, soft=True)
-        if result is not None:
-            size = os.path.getsize(viewport_png) if os.path.isfile(viewport_png) else 0
-            if size > 1024:
-                record("PASS", "capture_screenshot", f"{viewport_png} ({size // 1024} KB)")
-            else:
-                record("FAIL", "capture_screenshot", f"claimed success, file size {size}")
+        await call("viewport.capture_screenshot", output_path=viewport_png)
+        inspect_visual("viewport", viewport_png)
 
         network_png = str(out_dir / "network.png").replace("\\", "/")
-        result = await call(
+        await call(
             "viewport.capture_network_editor",
             output_path=network_png,
             node_path=container,
-            soft=True,
         )
-        if result is not None:
-            size = os.path.getsize(network_png) if os.path.isfile(network_png) else 0
-            if size > 1024:
-                record("PASS", "capture_network_editor", f"{network_png} ({size // 1024} KB)")
-            else:
-                record("FAIL", "capture_network_editor", f"claimed success, file size {size}")
+        inspect_visual("network", network_png)
 
         ###### OpenGL viewport render
         flip_png = str(out_dir / "opengl.$F4.png").replace("\\", "/")
-        result = await call(
-            "rendering.render_viewport", output_path=flip_png, resolution=[320, 240], soft=True
+        await call(
+            "rendering.render_viewport", output_path=flip_png, resolution=[320, 240]
         )
-        if result is not None:
-            written = list(out_dir.glob("opengl.*.png"))
-            if written:
-                record("PASS", "render_viewport (OpenGL)", str(written[0]))
-            else:
-                record("FAIL", "render_viewport", "claimed success, no image written")
+        written = list(out_dir.glob("opengl.*.png"))
+        if not written:
+            raise AssertionError("render_viewport claimed success, no image written")
+        inspect_visual("opengl", str(written[0]))
 
         ###### Runtime auto-layout toggle (v1.1.0 feature) in a live session
         await call(

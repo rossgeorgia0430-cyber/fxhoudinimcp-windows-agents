@@ -386,7 +386,7 @@ async def set_light_properties(
     ctx: Context,
     node_path: str,
     prim_path: str,
-    properties: dict[str, Any],
+    properties: dict[str, Value],
 ) -> dict:
     """Set properties on a USD light prim via an inline Python LOP.
 

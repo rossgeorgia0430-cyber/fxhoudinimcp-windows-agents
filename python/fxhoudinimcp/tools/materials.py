@@ -13,6 +13,7 @@ from typing import Any, Optional
 from mcp.server.fastmcp import Context
 
 # Internal
+from fxhoudinimcp._types import Value
 from fxhoudinimcp.server import mcp, _get_bridge
 
 
@@ -58,7 +59,7 @@ async def create_material_network(
     ctx: Context,
     name: str,
     shader_type: str = "principled",
-    params: Optional[dict[str, Any]] = None,
+    params: Optional[dict[str, Value]] = None,
 ) -> dict:
     """Create a new material network in /mat.
 
@@ -76,6 +77,31 @@ async def create_material_network(
     if params is not None:
         p["params"] = params
     return await bridge.execute("materials.create_material_network", p)
+
+
+@mcp.tool()
+async def assign_material_sop(
+    ctx: Context,
+    geo_path: str,
+    material_path: str,
+) -> dict:
+    """Append a Material SOP that assigns a material to an OBJ geometry node.
+
+    This is the focused SOP-level assignment tool. For a broader lookdev
+    workflow that also creates a material, use ``workflow.assign_material``.
+
+    Args:
+        geo_path: Object-level geometry node containing the SOP network.
+        material_path: Absolute path to the material/shader node.
+    """
+    bridge = _get_bridge(ctx)
+    return await bridge.execute(
+        "materials.assign_material",
+        {
+            "geo_path": geo_path,
+            "material_path": material_path,
+        },
+    )
 
 
 @mcp.tool()

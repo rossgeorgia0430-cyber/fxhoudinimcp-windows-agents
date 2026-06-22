@@ -9,12 +9,13 @@ chain building, and render configuration.
 from __future__ import annotations
 
 # Built-in
-from typing import Any, Optional
+from typing import Optional
 
 # Third-party
 from mcp.server.fastmcp import Context
 
 # Internal
+from fxhoudinimcp._specs import SopStepSpec
 from fxhoudinimcp.server import mcp, _get_bridge
 
 
@@ -206,7 +207,7 @@ async def assign_material(
 async def build_sop_chain(
     ctx: Context,
     parent_path: str = "/obj/geo1",
-    steps: Optional[list[dict[str, Any]]] = None,
+    steps: Optional[list[SopStepSpec]] = None,
 ) -> dict:
     """Build a sequential chain of SOP nodes wired together in a single call.
 
@@ -231,7 +232,12 @@ async def build_sop_chain(
     bridge = _get_bridge(ctx)
     params: dict = {"parent_path": parent_path}
     if steps is not None:
-        params["steps"] = steps
+        params["steps"] = [
+            step.model_dump(exclude_none=True)
+            if isinstance(step, SopStepSpec)
+            else step
+            for step in steps
+        ]
     return await bridge.execute("workflow.build_sop_chain", params)
 
 

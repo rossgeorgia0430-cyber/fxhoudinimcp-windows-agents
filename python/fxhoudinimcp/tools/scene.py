@@ -14,7 +14,8 @@ from mcp.server.fastmcp import Context
 
 # Internal
 from fxhoudinimcp.errors import ConnectionError as HoudiniConnectionError
-from fxhoudinimcp.server import mcp, _get_bridge
+from fxhoudinimcp.server import _get_bridge, mcp
+from fxhoudinimcp.tool_profiles import get_active_tool_profile
 
 
 @mcp.tool()
@@ -27,12 +28,14 @@ async def get_houdini_connection_status(ctx: Context) -> dict:
     running.
     """
     bridge = _get_bridge(ctx)
+    profile = get_active_tool_profile()
     try:
         health = await bridge.health_check()
     except HoudiniConnectionError as exc:
         return {
             "connected": False,
             "base_url": bridge.base_url,
+            "mcp_tool_profile": profile,
             "error": str(exc),
             "details": exc.details,
         }
@@ -40,6 +43,7 @@ async def get_houdini_connection_status(ctx: Context) -> dict:
         return {
             "connected": False,
             "base_url": bridge.base_url,
+            "mcp_tool_profile": profile,
             "error": str(exc),
             "details": {"type": type(exc).__name__},
         }
@@ -47,6 +51,7 @@ async def get_houdini_connection_status(ctx: Context) -> dict:
     return {
         "connected": True,
         "base_url": bridge.base_url,
+        "mcp_tool_profile": profile,
         "health": health,
     }
 
@@ -133,13 +138,20 @@ async def export_file(
     node_path: str,
     file_path: str,
     frame_range: Optional[list[float]] = None,
+    timeout: Optional[float] = None,
 ) -> dict:
     """Export a node's output to a file on disk.
+
+    Exporting a Driver/ROP node triggers a full render, and a frame range cooks
+    every frame — both block the main thread. For anything beyond a single
+    light frame, pass an explicit `timeout` so the default (120s) doesn't
+    abandon the export mid-write.
 
     Args:
         node_path: Path to the node to export.
         file_path: Destination file path.
         frame_range: Frame range as [start, end] or [start, end, step].
+        timeout: Operation budget in seconds. Omit for the default (120s).
     """
     bridge = _get_bridge(ctx)
     params: dict = {
@@ -148,7 +160,7 @@ async def export_file(
     }
     if frame_range is not None:
         params["frame_range"] = frame_range
-    return await bridge.execute("scene.export_file", params)
+    return await bridge.execute("scene.export_file", params, timeout=timeout)
 
 
 @mcp.tool()

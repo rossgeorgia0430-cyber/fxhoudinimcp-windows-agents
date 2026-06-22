@@ -281,15 +281,17 @@ def create_vex_expression(
     parm_name: str,
     vex_code: str,
 ) -> dict:
-    """Set a VEX expression on a parameter.
+    """Set a Houdini parameter expression (compatibility command name).
 
-    This sets the parameter's expression language to VEX and assigns
-    the given expression code.
+    Houdini parameters support HScript or Python expressions, not VEX. The
+    ``vex_code`` argument is a retained historical field name; callers should
+    use a valid HScript/Python expression and use ``vex.set_wrangle_code`` for
+    actual VEX source.
 
     Args:
         node_path: Path to the node.
         parm_name: Name of the parameter.
-        vex_code: The VEX expression code.
+        vex_code: HScript or Python expression text.
     """
     node = _get_node(node_path)
 

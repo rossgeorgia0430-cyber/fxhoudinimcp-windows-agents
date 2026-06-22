@@ -13,6 +13,7 @@ from typing import Any
 from mcp.server.fastmcp import Context
 
 # Internal
+from fxhoudinimcp._specs import SpareParameterSpec
 from fxhoudinimcp._types import Value
 from fxhoudinimcp.server import mcp, _get_bridge
 
@@ -61,18 +62,26 @@ async def set_parameter(
 
 @mcp.tool()
 async def set_parameters(
-    ctx: Context, node_path: str, params: dict[str, Any]
+    ctx: Context, node_path: str, params: dict[str, Value], atomic: bool = True
 ) -> dict:
     """Batch-set multiple parameters on a node.
+
+    For multi-component parms pass a list against the tuple name, e.g.
+    {"t": [0, 1, 0], "size": [2, 2, 2]} — a scalar against a tuple name is
+    broadcast across components. The result reports `applied`, the read-back
+    `set` values, and a per-item `errors` list.
 
     Args:
         node_path: Node path.
         params: Mapping of parameter names to values.
+        atomic: When true (default), change nothing unless every parameter
+            resolves and applies — a failure rolls the batch back so you never
+            get a half-applied node. Set false to apply whatever succeeds.
     """
     bridge = _get_bridge(ctx)
     return await bridge.execute(
         "parameters.set_parameters",
-        {"node_path": node_path, "params": params},
+        {"node_path": node_path, "params": params, "atomic": atomic},
     )
 
 
@@ -272,7 +281,7 @@ async def create_spare_parameter(
 async def create_spare_parameters(
     ctx: Context,
     node_path: str,
-    parameters: list[dict[str, Any]],
+    parameters: list[SpareParameterSpec],
     folder_name: str | None = None,
     folder_type: str = "Tabs",
 ) -> dict:
@@ -289,7 +298,12 @@ async def create_spare_parameters(
     bridge = _get_bridge(ctx)
     payload: dict[str, Any] = {
         "node_path": node_path,
-        "parameters": parameters,
+        "parameters": [
+            parameter.model_dump(exclude_none=True)
+            if isinstance(parameter, SpareParameterSpec)
+            else parameter
+            for parameter in parameters
+        ],
     }
     if folder_name is not None:
         payload["folder_name"] = folder_name

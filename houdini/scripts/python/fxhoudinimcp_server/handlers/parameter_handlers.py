@@ -72,6 +72,55 @@ def _serialize_value(value: Any) -> Any:
     return value
 
 
+def _snapshot_parm_state(parm: hou.Parm) -> dict[str, Any]:
+    """Capture a parm in a form that preserves animation and references.
+
+    ``parm.eval()`` alone is not a reversible snapshot: restoring that value
+    would replace a channel reference, expression, or keyframe curve with a
+    constant.  Batch mutation needs to preserve those authored states when a
+    later item fails.
+    """
+    expression: str | None = None
+    expression_language = None
+    try:
+        expression = parm.expression()
+        expression_language = parm.expressionLanguage()
+    except hou.OperationFailed:
+        pass
+
+    return {
+        "parm": parm,
+        "value": parm.eval(),
+        "expression": expression,
+        "expression_language": expression_language,
+        "keyframes": list(parm.keyframes()),
+    }
+
+
+def _snapshot_target(target: Any, is_tuple: bool) -> list[dict[str, Any]]:
+    """Snapshot every component touched by a parameter or parm tuple."""
+    if is_tuple:
+        return [_snapshot_parm_state(parm) for parm in target]
+    return [_snapshot_parm_state(target)]
+
+
+def _restore_parm_state(state: dict[str, Any]) -> None:
+    """Restore one parameter without flattening expressions or keyframes."""
+    parm: hou.Parm = state["parm"]
+    keyframes = state["keyframes"]
+    expression = state["expression"]
+
+    # Clear the temporary value/key made by the failed batch before restoring
+    # the exact authored control source.
+    parm.deleteAllKeyframes()
+    if keyframes:
+        parm.setKeyframes(keyframes)
+    elif expression is not None:
+        parm.setExpression(expression, state["expression_language"])
+    else:
+        parm.set(state["value"])
+
+
 def _template_to_dict(pt: hou.ParmTemplate) -> dict[str, Any]:
     """Convert a ParmTemplate to a JSON-serialisable dictionary."""
     info: dict[str, Any] = {
@@ -206,37 +255,115 @@ register_handler("parameters.set_parameter", _set_parameter)
 
 
 def _set_parameters(
-    node_path: str, params: dict[str, Any], **_: Any
+    node_path: str, params: dict[str, Any], atomic: bool = True, **_: Any
 ) -> dict[str, Any]:
-    """Batch-set multiple parameters on a single node."""
+    """Batch-set multiple parameters on a single node.
+
+    Mirrors set_parameter's value handling: a list/tuple value targets the
+    whole parm tuple (so {"size": [1, 2, 3]} works, not just the per-component
+    names), and a scalar aimed at a tuple name is broadcast across components.
+
+    When ``atomic`` is True (default) the call first resolves every target and
+    changes nothing if any name is unresolved or any tuple arity is wrong; if a
+    later ``.set()`` still raises, the already-applied values are rolled back.
+    This guarantees the agent never lands a half-applied batch it can't see.
+    """
     node = _resolve_node(node_path)
-
-    results: list[dict[str, Any]] = []
-    errors: list[dict[str, str]] = []
-
     available = _available_parm_names(node)
+
+    # Phase 1: resolve every target up front (no mutation yet).
+    planned: list[tuple[str, Any, Any, bool]] = []  # name, target, value, is_tuple
+    errors: list[dict[str, str]] = []
     for name, value in params.items():
-        parm = node.parm(name)
-        if parm is None:
-            close = get_close_matches(name, available, n=3, cutoff=0.4)
-            hint = f" Did you mean: {close}?" if close else ""
-            errors.append(
-                {"parm_name": name, "error": f"Parameter '{name}' not found.{hint}"}
-            )
+        if isinstance(value, (list, tuple)):
+            parm_tuple = node.parmTuple(name)
+            if parm_tuple is None:
+                close = get_close_matches(name, available, n=3, cutoff=0.4)
+                hint = f" Did you mean: {close}?" if close else ""
+                errors.append(
+                    {"parm_name": name, "error": f"Parameter tuple '{name}' not found.{hint}"}
+                )
+                continue
+            if len(value) != len(parm_tuple):
+                errors.append(
+                    {
+                        "parm_name": name,
+                        "error": (
+                            f"'{name}' has {len(parm_tuple)} components, "
+                            f"got {len(value)} values."
+                        ),
+                    }
+                )
+                continue
+            planned.append((name, parm_tuple, list(value), True))
             continue
+
+        parm = node.parm(name)
+        if parm is not None:
+            planned.append((name, parm, value, False))
+            continue
+        # A scalar aimed at a tuple name (e.g. "t" -> tx/ty/tz): broadcast.
+        parm_tuple = node.parmTuple(name)
+        if parm_tuple is not None:
+            planned.append((name, parm_tuple, [value] * len(parm_tuple), True))
+            continue
+        close = get_close_matches(name, available, n=3, cutoff=0.4)
+        hint = f" Did you mean: {close}?" if close else ""
+        errors.append(
+            {"parm_name": name, "error": f"Parameter '{name}' not found.{hint}"}
+        )
+
+    if atomic and errors:
+        return {
+            "node_path": node_path,
+            "applied": False,
+            "set": [],
+            "errors": errors,
+            "note": "atomic: nothing changed because some parameters could not be resolved",
+        }
+
+    # Phase 2: apply, snapshotting authored state so a mid-batch failure can
+    # restore expressions, channel references, and keyframe curves exactly.
+    applied: list[list[dict[str, Any]]] = []
+    results: list[dict[str, Any]] = []
+    for name, target, value, is_tuple in planned:
         try:
-            parm.set(value)
-            results.append(
-                {
-                    "parm_name": name,
-                    "new_value": _serialize_value(parm.eval()),
-                }
+            snapshot = _snapshot_target(target, is_tuple)
+            target.set(value)
+            applied.append(snapshot)
+            new_value = (
+                [_serialize_value(p.eval()) for p in target]
+                if is_tuple
+                else _serialize_value(target.eval())
             )
+            results.append({"parm_name": name, "new_value": new_value})
         except Exception as exc:
+            if atomic:
+                rollback_errors: list[str] = []
+                for snapshot in reversed(applied):
+                    for state in reversed(snapshot):
+                        try:
+                            _restore_parm_state(state)
+                        except Exception as rollback_exc:
+                            rollback_errors.append(str(rollback_exc))
+                note = (
+                    "atomic: batch failed and every applied parameter was restored"
+                    if not rollback_errors
+                    else "atomic: batch failed, but one or more rollback operations failed"
+                )
+                return {
+                    "node_path": node_path,
+                    "applied": False,
+                    "set": [] if not rollback_errors else results,
+                    "errors": errors + [{"parm_name": name, "error": f"rolled back: {exc}"}],
+                    "rollback_errors": rollback_errors,
+                    "note": note,
+                }
             errors.append({"parm_name": name, "error": str(exc)})
 
     return {
         "node_path": node_path,
+        "applied": bool(results),
         "set": results,
         "errors": errors,
     }

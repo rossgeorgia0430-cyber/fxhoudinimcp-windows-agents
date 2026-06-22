@@ -1,0 +1,16 @@
+# Project-relative Windows Codex profile. Codex resolves both `cwd` and the
+# launcher path from the trusted project root, so the checkout can live under
+# any user name, drive, directory containing spaces, or Unicode path.
+
+[mcp_servers.fxhoudinimcp]
+command = "powershell.exe"
+args = ["-NoLogo", "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", "scripts/windows/start-fxhoudinimcp.ps1"]
+cwd = "."
+startup_timeout_sec = 30
+tool_timeout_sec = 600
+default_tools_approval_mode = "auto"
+
+[mcp_servers.fxhoudinimcp.env]
+HOUDINI_HOST = "127.0.0.1"
+HOUDINI_PORT = "18100"
+FXHOUDINIMCP_TOOL_PROFILE = "core"

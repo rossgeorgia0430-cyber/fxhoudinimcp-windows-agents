@@ -102,12 +102,17 @@ async def create_vex_expression(
     parm_name: str,
     vex_code: str,
 ) -> dict:
-    """Set a VEX expression on a parameter.
+    """Set a Houdini parameter expression (compatibility command name).
+
+    Houdini parameters use HScript expressions (with a Python fallback), not
+    VEX. The historical ``vex_code`` argument name is retained for backwards
+    compatibility; pass an expression such as ``$F`` or ``frame()``. To edit
+    actual VEX, use ``set_wrangle_code``.
 
     Args:
         node_path: Path to the node.
         parm_name: Parameter name.
-        vex_code: VEX expression code.
+        vex_code: HScript or Python expression text (historical field name).
     """
     bridge = _get_bridge(ctx)
     return await bridge.execute(

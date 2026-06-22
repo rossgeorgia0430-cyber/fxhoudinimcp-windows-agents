@@ -92,7 +92,10 @@ class TestExecute:
 
             with pytest.raises(ConnectionError) as exc_info:
                 await bridge.execute("scene.get_info")
-            assert "timed out" in str(exc_info.value)
+            # The message tells the agent the op may still be running and not
+            # to blindly retry, and the details flag completion as unknown.
+            assert "may still be running" in str(exc_info.value)
+            assert exc_info.value.details.get("completion") == "unknown"
 
     @pytest.mark.asyncio
     async def test_http_status_error(self, bridge, mock_response):
@@ -124,7 +127,7 @@ class TestHealthCheck:
     async def test_success(self):
         bridge = HoudiniBridge()
         resp = MagicMock(spec=httpx.Response)
-        resp.json.return_value = {"status": "ok", "houdini_version": "21.0.440"}
+        resp.json.return_value = {"status": "ok", "houdini_version": "99.0.0-test"}
         resp.raise_for_status = MagicMock()
 
         with patch.object(bridge, "_get_client") as mock_client:
@@ -133,7 +136,7 @@ class TestHealthCheck:
             mock_client.return_value = client
 
             result = await bridge.health_check()
-            assert result["houdini_version"] == "21.0.440"
+            assert result["houdini_version"] == "99.0.0-test"
 
     @pytest.mark.asyncio
     async def test_failure_raises_connection_error(self):

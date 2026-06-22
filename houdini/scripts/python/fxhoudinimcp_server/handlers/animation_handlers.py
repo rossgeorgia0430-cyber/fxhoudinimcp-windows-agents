@@ -82,6 +82,16 @@ def _set_keyframe(
 
     parm.setKeyframe(key)
 
+    # Verify the key actually landed — setKeyframe can no-op on a parm that
+    # isn't keyable, so confirm against the parm rather than echoing the input.
+    keyed = any(abs(k.frame() - frame) < 1e-4 for k in parm.keyframes())
+    if not keyed:
+        raise hou.OperationFailed(
+            f"setKeyframe did not register a key at frame {frame} on "
+            f"'{parm_name}' of '{node_path}' (is the parameter keyable, or "
+            "locked by an expression/channel reference?)."
+        )
+
     return {
         "node_path": node_path,
         "parm_name": parm_name,
@@ -89,6 +99,7 @@ def _set_keyframe(
         "value": value,
         "slope": slope,
         "accel": accel,
+        "keyframes_on_parm": len(parm.keyframes()),
         "status": "keyframe_set",
     }
 
@@ -132,10 +143,28 @@ def _set_keyframes(
         parm.setKeyframe(key)
         set_count += 1
 
+    # Report the actual key count on the parm, not just the loop iterations —
+    # if the parm wasn't keyable the requested keys won't be there.
+    actual = list(parm.keyframes())
+    keyframes_on_parm = len(actual)
+    missing_frames = [
+        float(kf_data["frame"])
+        for kf_data in keyframes
+        if not any(abs(key.frame() - float(kf_data["frame"])) < 1e-4 for key in actual)
+    ]
+    if missing_frames:
+        raise hou.OperationFailed(
+            f"Keyframes at {missing_frames} were not registered on '{parm_name}' "
+            f"of '{node_path}' after {set_count} setKeyframe calls (is the "
+            "parameter keyable or locked by an expression/channel reference?)."
+        )
+
     return {
         "node_path": node_path,
         "parm_name": parm_name,
-        "keyframes_set": set_count,
+        "keyframes_requested": set_count,
+        "keyframes_on_parm": keyframes_on_parm,
+        "keyframes_verified": [float(kf_data["frame"]) for kf_data in keyframes],
         "status": "keyframes_set",
     }
 

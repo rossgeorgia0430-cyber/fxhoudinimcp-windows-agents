@@ -7,12 +7,13 @@ via the HTTP bridge.
 from __future__ import annotations
 
 # Built-in
-from typing import Any, Optional
+from typing import Optional
 
 # Third-party
 from mcp.server.fastmcp import Context
 
 # Internal
+from fxhoudinimcp._specs import ConnectionSpec
 from fxhoudinimcp.config import auto_layout_enabled
 from fxhoudinimcp.server import mcp, _get_bridge
 
@@ -261,19 +262,18 @@ async def connect_nodes(
 @mcp.tool()
 async def connect_nodes_batch(
     ctx: Context,
-    connections: list[dict[str, Any]],
+    connections: list[ConnectionSpec],
 ) -> dict:
     """Connect multiple node pairs in a single call.
 
     Args:
-        connections: List of connections. Each dict has keys:
-            source_path (str), dest_path (str),
-            output_index (int, default 0), input_index (int, default 0).
+        connections: List of connections, each with source_path, dest_path,
+            and optional output_index / input_index (both default 0).
     """
     bridge = _get_bridge(ctx)
     return await bridge.execute(
         "nodes.connect_nodes_batch",
-        {"connections": connections},
+        {"connections": [c.model_dump() for c in connections]},
     )
 
 

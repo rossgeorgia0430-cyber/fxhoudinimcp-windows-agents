@@ -78,6 +78,44 @@ class TestSetGet:
             6.0,
         ]
 
+    def test_set_parameters_batch_applies_a_parm_tuple(self, call, box):
+        result = call(
+            "parameters.set_parameters",
+            node_path=box,
+            params={"size": [2.0, 3.0, 4.0]},
+        )
+        assert result["applied"] is True
+        assert hou.node(box).parmTuple("size").eval() == (2.0, 3.0, 4.0)
+
+    def test_atomic_batch_preserves_expression_after_late_failure(self, call, box):
+        call(
+            "parameters.set_expression",
+            node_path=box,
+            parm_name="sizex",
+            expression="$F",
+        )
+        call("parameters.lock_parameter", node_path=box, parm_name="sizey", locked=True)
+        result = call(
+            "parameters.set_parameters",
+            node_path=box,
+            params={"sizex": 12.0, "sizey": 9.0},
+        )
+        assert result["applied"] is False
+        assert result["rollback_errors"] == []
+        hou.setFrame(7)
+        assert hou.node(box).parm("sizex").eval() == 7.0
+
+    def test_non_atomic_batch_reports_no_application_when_every_item_fails(self, call, box):
+        call("parameters.lock_parameter", node_path=box, parm_name="sizex", locked=True)
+        result = call(
+            "parameters.set_parameters",
+            node_path=box,
+            params={"sizex": 4.0},
+            atomic=False,
+        )
+        assert result["applied"] is False
+        assert result["errors"]
+
     def test_unknown_parm_suggests_close_match(self, call, box):
         error = call(
             "parameters.set_parameter",

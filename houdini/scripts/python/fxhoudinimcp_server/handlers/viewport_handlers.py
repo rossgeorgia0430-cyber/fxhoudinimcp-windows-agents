@@ -567,16 +567,21 @@ def capture_screenshot(
         _capture_pane_tab_qt(pane_tab, output_path)
 
     # Downscale + JPEG-compress before base64 to avoid token bloat.
-    image_base64 = None
-    mime_type = "image/jpeg"
-    if os.path.isfile(actual_path):
-        image_base64, mime_type = _downscale_and_encode(actual_path)
+    if not os.path.isfile(actual_path):
+        raise hou.OperationFailed(
+            f"Viewport capture did not produce an image at '{actual_path}'."
+        )
+    image_base64, mime_type = _downscale_and_encode(actual_path)
+    if not image_base64:
+        raise hou.OperationFailed(
+            f"Viewport capture exists but could not be encoded for MCP: '{actual_path}'."
+        )
 
     return {
         "success": True,
         "pane_name": pane_tab.name(),
         "output_path": actual_path,
-        "file_exists": os.path.isfile(actual_path),
+        "file_exists": True,
         "image_base64": image_base64,
         "mime_type": mime_type,
     }
@@ -621,10 +626,15 @@ def capture_network_editor(
     # Capture the network editor via Qt widget grab
     _capture_pane_tab_qt(network_editor, output_path)
 
-    image_base64 = None
-    mime_type = "image/jpeg"
-    if os.path.isfile(output_path):
-        image_base64, mime_type = _downscale_and_encode(output_path)
+    if not os.path.isfile(output_path):
+        raise hou.OperationFailed(
+            f"Network-editor capture did not produce an image at '{output_path}'."
+        )
+    image_base64, mime_type = _downscale_and_encode(output_path)
+    if not image_base64:
+        raise hou.OperationFailed(
+            f"Network-editor capture exists but could not be encoded for MCP: '{output_path}'."
+        )
 
     return {
         "success": True,

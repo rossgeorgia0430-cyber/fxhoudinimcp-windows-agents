@@ -58,3 +58,11 @@ from fxhoudinimcp.tools import materials  # noqa: F401
 from fxhoudinimcp.tools import chops  # noqa: F401
 from fxhoudinimcp.tools import cache  # noqa: F401
 from fxhoudinimcp.tools import takes  # noqa: F401
+
+# Filter the real FastMCP registry only after every decorator has registered
+# its wrapper.  This keeps the full wrapper/handler contract auditable while
+# reducing the schema surface sent to clients for focused profiles.
+from fxhoudinimcp.server import mcp  # noqa: E402
+from fxhoudinimcp.tool_profiles import apply_tool_profile  # noqa: E402
+
+apply_tool_profile(mcp)

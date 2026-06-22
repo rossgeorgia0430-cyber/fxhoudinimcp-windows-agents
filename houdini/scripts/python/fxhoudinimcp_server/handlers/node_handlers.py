@@ -581,33 +581,46 @@ def disconnect_node(
 def reorder_inputs(node_path: str, new_order: list) -> dict:
     """Reorder the input connections of a node.
 
+    ``new_order`` must be a full permutation of the node's existing input
+    slots (e.g. [1, 0] to swap two inputs). A short, duplicated, or
+    out-of-range order is rejected rather than silently dropping connections —
+    use disconnect_node to remove an input on purpose. Source output indices
+    are preserved across the reorder.
+
     Args:
         node_path: Path to the node.
-        new_order: List of integers representing the new input ordering.
-                   For example, [1, 0] swaps the first two inputs.
+        new_order: A permutation of 0..N-1 where N is the current input count.
     """
     node = _get_node(node_path)
     current_inputs = list(node.inputs())
+    count = len(current_inputs)
 
-    if len(new_order) > len(current_inputs):
+    order = [int(i) for i in new_order]
+    if sorted(order) != list(range(count)):
         raise ValueError(
-            f"new_order has {len(new_order)} entries but node only has "
-            f"{len(current_inputs)} inputs."
+            f"new_order must be a permutation of 0..{count - 1} "
+            f"(the node's {count} input slots); got {new_order}. It must list "
+            "every slot exactly once — to remove a connection use "
+            "disconnect_node, not a shorter order."
         )
 
-    # Disconnect all first
-    for i in range(len(current_inputs)):
+    # Preserve each input's source output index across the reorder.
+    out_index = {c.inputIndex(): c.outputIndex() for c in node.inputConnections()}
+    sources = [(current_inputs[i], out_index.get(i, 0)) for i in range(count)]
+
+    for i in range(count):
         node.setInput(i, None)
+    for new_idx, old_idx in enumerate(order):
+        src, src_out = sources[old_idx]
+        if src is not None:
+            node.setInput(new_idx, src, src_out)
 
-    # Reconnect in the new order
-    for new_idx, old_idx in enumerate(new_order):
-        if old_idx < len(current_inputs) and current_inputs[old_idx] is not None:
-            node.setInput(new_idx, current_inputs[old_idx])
-
+    inputs_after = [n.path() if n is not None else None for n in node.inputs()]
     return {
         "success": True,
         "node_path": node_path,
-        "new_order": new_order,
+        "new_order": order,
+        "inputs_after": inputs_after,
     }
 
 

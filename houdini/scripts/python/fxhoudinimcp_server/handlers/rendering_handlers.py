@@ -7,7 +7,6 @@ operations including Karma, OpenGL, and other Houdini renderers.
 from __future__ import annotations
 
 # Built-in
-import base64
 import logging
 import os
 
@@ -29,11 +28,18 @@ def _find_flipbook_output(output_path: str, frame: float) -> str:
     (e.g. "output.0001.png" instead of "output.png") even for single-frame
     captures. This helper locates the actual file and optionally renames it.
     """
+    # A Houdini frame token (for example ``$F4``) expands *inside* the file
+    # name. Check the expanded path before trying the fallback patterns; using
+    # the raw value would look for ``image.$F4.0001.png`` even though flipbook
+    # correctly wrote ``image.0001.png``.
+    expanded_path = hou.expandString(output_path)
+    if os.path.isfile(expanded_path):
+        return expanded_path
     if os.path.isfile(output_path):
         return output_path
 
     # Try common frame-number patterns
-    base, ext = os.path.splitext(output_path)
+    base, ext = os.path.splitext(expanded_path)
     frame_int = int(frame)
     candidates = [
         f"{base}.{frame_int:04d}{ext}",
@@ -111,16 +117,21 @@ def render_viewport(
     actual_path = _find_flipbook_output(output_path, cur_frame)
 
     # Downscale + JPEG-compress before base64 to avoid token bloat.
-    image_base64 = None
-    mime_type = "image/jpeg"
-    if os.path.isfile(actual_path):
-        from fxhoudinimcp_server.handlers.viewport_handlers import _downscale_and_encode
-        image_base64, mime_type = _downscale_and_encode(actual_path)
+    if not os.path.isfile(actual_path):
+        raise hou.OperationFailed(
+            f"Viewport render did not produce an image at '{actual_path}'."
+        )
+    from fxhoudinimcp_server.handlers.viewport_handlers import _downscale_and_encode
+    image_base64, mime_type = _downscale_and_encode(actual_path)
+    if not image_base64:
+        raise hou.OperationFailed(
+            f"Viewport render exists but could not be encoded for MCP: '{actual_path}'."
+        )
 
     return {
         "success": True,
         "output_path": actual_path,
-        "file_exists": os.path.isfile(actual_path),
+        "file_exists": True,
         "resolution": resolution,
         "camera": camera,
         "frame": cur_frame,
@@ -523,10 +534,15 @@ def render_node_network(
     )
     _capture_pane_tab_qt(network_editor, output_path)
 
-    image_base64 = None
-    mime_type = "image/jpeg"
-    if os.path.isfile(output_path):
-        image_base64, mime_type = _downscale_and_encode(output_path)
+    if not os.path.isfile(output_path):
+        raise hou.OperationFailed(
+            f"Network render did not produce an image at '{output_path}'."
+        )
+    image_base64, mime_type = _downscale_and_encode(output_path)
+    if not image_base64:
+        raise hou.OperationFailed(
+            f"Network render exists but could not be encoded for MCP: '{output_path}'."
+        )
 
     return {
         "success": True,

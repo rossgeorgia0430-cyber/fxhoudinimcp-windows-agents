@@ -12,6 +12,10 @@
 | `MCP_TRANSPORT` | `stdio` | MCP transport (`stdio` or `streamable-http`) |
 | `LOG_LEVEL` | `INFO` | Logging level |
 
+The Windows/Codex launcher uses `18100` by default so it can run beside a
+standard upstream `8100` setup. Any port is valid as long as
+`FXHOUDINIMCP_PORT` in Houdini and `HOUDINI_PORT` in the MCP process match.
+
 ## Auto-Start
 
 The Houdini plugin auto-starts when the UI is ready via `uiready.py`, which

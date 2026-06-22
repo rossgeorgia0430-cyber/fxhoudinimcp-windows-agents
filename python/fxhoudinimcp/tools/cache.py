@@ -78,16 +78,24 @@ async def write_cache(
     ctx: Context,
     node_path: str,
     frame_range: Optional[list[int]] = None,
+    timeout: Optional[float] = None,
 ) -> dict:
     """Execute a cache node to write files to disk.
+
+    This blocks on the main thread while every frame cooks, so a real
+    frame-range cache needs an explicit `timeout` — the default (120s) will
+    abandon the wait mid-write and you cannot tell a finished cache from a
+    partial one. Size `timeout` to the expected cook time.
 
     Args:
         ctx: MCP context.
         node_path: Path to the cache node.
         frame_range: [start, end] frame range to render.
+        timeout: Operation budget in seconds. Omit for the default (120s);
+            raise it for multi-frame caches.
     """
     bridge = _get_bridge(ctx)
     params: dict[str, Any] = {"node_path": node_path}
     if frame_range is not None:
         params["frame_range"] = frame_range
-    return await bridge.execute("cache.write_cache", params)
+    return await bridge.execute("cache.write_cache", params, timeout=timeout)
