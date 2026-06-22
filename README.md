@@ -21,17 +21,17 @@
     <!-- License -->
     <img src="https://img.shields.io/badge/License-MIT-brightgreen.svg?&logo=open-source-initiative&logoColor=white" alt="License: MIT"/>&nbsp;&nbsp;
     <!-- Last Commit -->
-    <img src="https://img.shields.io/github/last-commit/healkeiser/fxhoudinimcp?logo=github&label=Last%20Commit" alt="Last Commit"/>&nbsp;&nbsp;
+    <img src="https://img.shields.io/github/last-commit/rossgeorgia0430-cyber/fxhoudinimcp-windows-agents?logo=github&label=Last%20Commit" alt="Last Commit"/>&nbsp;&nbsp;
     <!-- Commit Activity -->
-    <a href="https://github.com/healkeiser/fxhoudinimcp/pulse" alt="Activity">
-      <img src="https://img.shields.io/github/commit-activity/m/healkeiser/fxhoudinimcp?&logo=github&label=Commit%20Activity"/></a>&nbsp;&nbsp;
+    <a href="https://github.com/rossgeorgia0430-cyber/fxhoudinimcp-windows-agents/pulse" alt="Activity">
+      <img src="https://img.shields.io/github/commit-activity/m/rossgeorgia0430-cyber/fxhoudinimcp-windows-agents?&logo=github&label=Commit%20Activity"/></a>&nbsp;&nbsp;
     <!-- PyPI version -->
     <a href="https://pypi.org/project/fxhoudinimcp/">
       <img src="https://img.shields.io/pypi/v/fxhoudinimcp?logo=pypi&logoColor=white&label=PyPI" alt="PyPI"/></a>&nbsp;&nbsp;
     <!-- PyPI downloads -->
     <a href="https://pepy.tech/projects/fxhoudinimcp"><img src="https://static.pepy.tech/badge/fxhoudinimcp" alt="PyPI Downloads"></a> &nbsp;&nbsp;
     <!-- GitHub stars -->
-    <img src="https://img.shields.io/github/stars/healkeiser/fxhoudinimcp" alt="GitHub Stars"/>&nbsp;&nbsp;
+    <img src="https://img.shields.io/github/stars/rossgeorgia0430-cyber/fxhoudinimcp-windows-agents" alt="GitHub Stars"/>&nbsp;&nbsp;
   </p>
 
 </div>
@@ -43,7 +43,7 @@
 - [Features](#features)
 - [Architecture](#architecture)
 - [Installation](#installation)
-- [Codex + Windows](docs/codex-windows.md)
+- [Windows Agents](docs/windows-agents.md)
 - [Usage](#usage)
 - [Environment Variables](#environment-variables)
 - [Development](#development)
@@ -54,11 +54,11 @@
 
 A comprehensive [MCP](https://modelcontextprotocol.io/) (Model Context Protocol) server for [SideFX Houdini](https://www.sidefx.com/). Connects AI assistants like Claude directly to Houdini's Python API, enabling natural language control over scene building, simulation setup, rendering, and more.
 
-This Windows/Codex fork is based on
+This Windows agents fork is based on
 [healkeiser/fxhoudinimcp](https://github.com/healkeiser/fxhoudinimcp). The
 upstream project, license, and changelog remain credited; fork-specific work is
-focused on portable Windows launchers, Codex MCP registration, validation, and
-agent-facing contracts.
+focused on portable Windows launchers, project-scoped Codex and Claude Code
+MCP registration, validation, and agent-facing contracts.
 
 **180 tools**, **8 resources**, and **6 workflow prompts** out of the box.
 
@@ -243,7 +243,7 @@ Or to scope it to a single project, add a `.mcp.json` in the project root:
 > After any config change, fully quit Claude Desktop (system tray → Quit) and relaunch.
 <!-- --8<-- [end:installation] -->
 
-### Codex + Windows fork
+### Windows Agents fork
 
 This fork includes project-scoped Codex and Claude Code MCP profiles and portable Windows
 launchers. From PowerShell in any clone location:
@@ -255,11 +255,11 @@ launchers. From PowerShell in any clone location:
 
 Bootstrap detects Python 3.10+ and the newest installed Houdini, creates a
 machine-local `.venv`, and installs the uniquely named
-`fxhoudinimcp-codex-windows.json` package in the Windows Documents known
+`fxhoudinimcp-windows-agents.json` package in the Windows Documents known
 folder. It does not overwrite the standard `fxhoudinimcp.json` package or
-change global package preferences. See [Codex + Windows](docs/codex-windows.md)
+change global package preferences. See [Windows Agents](docs/windows-agents.md)
 for path/version overrides, uninstall/restore, and full validation.
-The Windows/Codex profile intentionally uses port `18100` to avoid colliding
+The Windows agents profile intentionally uses port `18100` to avoid colliding
 with a standard upstream `8100` install; keep `HOUDINI_PORT` and
 `FXHOUDINIMCP_PORT` matched.
 
@@ -301,7 +301,7 @@ Once connected, your AI assistant can:
 | `MCP_TRANSPORT` | `stdio` | MCP transport (`stdio` or `streamable-http`) |
 | `LOG_LEVEL` | `INFO` | Logging level |
 
-The Windows/Codex launcher uses `18100` by default. The upstream/default port
+The Windows agents launcher uses `18100` by default. The upstream/default port
 is `8100`; use either value as long as Houdini and the MCP process agree.
 
 <!-- DEVELOPMENT -->

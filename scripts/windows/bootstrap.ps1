@@ -122,4 +122,4 @@ Write-Output ''
 Write-Output 'Bootstrap complete.'
 Write-Output "Python: $venvPython"
 Write-Output "Start Houdini: '$PSScriptRoot\start-houdini-fork.ps1' -Visible -Port $Port"
-Write-Output 'Then reopen this folder in Codex and inspect the project MCP server with /mcp.'
+Write-Output 'Then reopen this folder in Codex, or approve the project server in Claude Code.'

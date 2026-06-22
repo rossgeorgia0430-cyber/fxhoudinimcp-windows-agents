@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Exercise the exact Codex stdio launcher against a running Houdini GUI.
+"""Exercise the stdio MCP launcher against a running Houdini GUI.
 
     python tests/integration/mcp_stdio_live_e2e.py --port 18100
 """
@@ -59,7 +59,7 @@ def main() -> int:
     parser.add_argument("--port", type=int, required=True)
     args = parser.parse_args()
     asyncio.run(_exercise(args.port))
-    print("[stdio-e2e] Codex launcher, MCP discovery, and live scene call: passed")
+    print("[stdio-e2e] stdio launcher, MCP discovery, and live scene call: passed")
     return 0
 
 

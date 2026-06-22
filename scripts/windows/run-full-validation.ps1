@@ -118,9 +118,10 @@ try {
     $houdiniVersion = (& $hython -c 'import hou; print(hou.applicationVersionString())').Trim()
     if ([string]::IsNullOrWhiteSpace($houdiniVersion)) { $houdiniVersion = 'unknown' }
     $baseline = Join-Path $repo ".artifacts\visual-baselines\h$houdiniVersion-windows"
-    $prefs = Join-Path ([System.IO.Path]::GetTempPath()) "fxhoudinimcp-codex-h21-$PID"
+    $prefs = Join-Path ([System.IO.Path]::GetTempPath()) "fxhoudinimcp-windows-agents-h21-$PID"
     $previousPath = $env:HOUDINI_PATH
     $previousPort = $env:FXHOUDINIMCP_PORT
+    $previousHoudiniPort = $env:HOUDINI_PORT
     $previousPrefs = $env:HOUDINI_USER_PREF_DIR
     # Houdini requires the literal __HVER__ token in this override; without
     # it, it ignores the path and loads the user's existing package set.
@@ -145,13 +146,14 @@ try {
         }
 
         Invoke-ValidationStep 'HTTP bridge E2E (GUI main-thread path)' { & $python tests/integration/bridge_e2e.py --host 127.0.0.1 --port $Port }
-        Invoke-ValidationStep 'Codex stdio MCP E2E (GUI)' { & $python tests/integration/mcp_stdio_live_e2e.py --port $Port }
+        Invoke-ValidationStep 'stdio MCP E2E (GUI)' { & $python tests/integration/mcp_stdio_live_e2e.py --port $Port }
         Invoke-ValidationStep 'GUI visual baseline' { & $python tests/integration/gui_session_check.py --baseline-dir $baseline --update-baseline }
         Invoke-ValidationStep 'GUI visual comparison' { & $python tests/integration/gui_session_check.py --baseline-dir $baseline }
     } finally {
         if (-not $gui.HasExited) { Stop-Process -Id $gui.Id -Force }
         $env:HOUDINI_PATH = $previousPath
         $env:FXHOUDINIMCP_PORT = $previousPort
+        $env:HOUDINI_PORT = $previousHoudiniPort
         $env:HOUDINI_USER_PREF_DIR = $previousPrefs
     }
 } finally {

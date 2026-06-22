@@ -1,4 +1,4 @@
-"""Release-level portability checks for the Codex Windows fork.
+"""Release-level portability checks for the Windows agents fork.
 
 These tests intentionally do not require Houdini.  They guard the bootstrap
 and launcher layer that must work before a clean workstation can connect to a
@@ -35,7 +35,7 @@ PORTABLE_TEXT_FILES = (
     REPO_ROOT / ".mcp.json",
     REPO_ROOT / "README.md",
     REPO_ROOT / "AGENTS.md",
-    REPO_ROOT / "docs" / "codex-windows.md",
+    REPO_ROOT / "docs" / "windows-agents.md",
     *(WINDOWS_SCRIPTS / name for name in REQUIRED_SCRIPTS),
 )
 
@@ -90,7 +90,7 @@ def test_distribution_files_do_not_embed_the_author_machine(path: Path) -> None:
         r"(?i)c:[\\/]+users[\\/]+administrator\b",
         r"(?i)\badmini~1\b",
         r"(?i)houdini\s+21\.0\.440\b",
-        r"(?i)d:[\\/]+projects[\\/]+fxhoudinimcp-codex-windows\b",
+        r"(?i)d:[\\/]+projects[\\/]+fxhoudinimcp-(?:codex-windows|windows-agents)\b",
     )
     found = [
         pattern
@@ -177,7 +177,13 @@ def test_package_management_supports_redirected_documents(script_name: str) -> N
     parameters = _parameter_names(script)
     assert "documentspath" in parameters
     assert re.search(r"(?i)GetFolderPath\s*\(\s*['\"]MyDocuments['\"]\s*\)", script)
-    assert re.search(r"(?i)fxhoudinimcp[-_.]codex[-_.]windows", script)
+    assert re.search(r"(?i)fxhoudinimcp[-_.]windows[-_.]agents", script)
+
+
+def test_houdini_launcher_sets_both_port_names() -> None:
+    script = _read(WINDOWS_SCRIPTS / "start-houdini-fork.ps1")
+    assert '$env:FXHOUDINIMCP_PORT = "$Port"' in script
+    assert '$env:HOUDINI_PORT = "$Port"' in script
 
 
 def test_tool_profile_contract_is_visible_to_codex() -> None:
@@ -206,7 +212,7 @@ def test_package_install_and_uninstall_round_trip_in_redirected_documents(
     documents = tmp_path / "重定向 Documents with spaces"
     package_dir = documents / "houdini99.9" / "packages"
     package_dir.mkdir(parents=True)
-    package_path = package_dir / "fxhoudinimcp-codex-windows.json"
+    package_path = package_dir / "fxhoudinimcp-windows-agents.json"
     original = '{"original": true}\n'
     package_path.write_text(original, encoding="utf-8")
     package_preferences = package_dir.parent / "package.pref"
@@ -239,17 +245,21 @@ def test_package_install_and_uninstall_round_trip_in_redirected_documents(
     assert install.returncode == 0, install.stdout + install.stderr
     installed = json.loads(package_path.read_text(encoding="utf-8-sig"))
     assert installed["enable"] is True
-    assert installed["path"] == "$FXHOUDINIMCP_CODEX_WINDOWS"
+    assert installed["path"] == "$FXHOUDINIMCP_WINDOWS_AGENTS"
     package_env = installed["env"]
     source_entry = next(
-        item["FXHOUDINIMCP_CODEX_WINDOWS"]
+        item["FXHOUDINIMCP_WINDOWS_AGENTS"]
         for item in package_env
-        if "FXHOUDINIMCP_CODEX_WINDOWS" in item
+        if "FXHOUDINIMCP_WINDOWS_AGENTS" in item
     )
     assert source_entry["value"] == str(REPO_ROOT / "houdini").replace("\\", "/")
     assert source_entry["method"] == "replace"
     assert any(
         item.get("FXHOUDINIMCP_PORT", {}).get("value") == "18123"
+        for item in package_env
+    )
+    assert any(
+        item.get("HOUDINI_PORT", {}).get("value") == "18123"
         for item in package_env
     )
     assert package_path.with_suffix(".json.backup").is_file()

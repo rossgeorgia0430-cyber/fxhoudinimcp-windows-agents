@@ -5,7 +5,7 @@ param(
     [string]$DocumentsPath,
     [string]$HoudiniPreferencesRoot,
     [ValidatePattern('^[A-Za-z0-9._-]+$')]
-    [string]$PackageName = 'fxhoudinimcp-codex-windows'
+    [string]$PackageName = 'fxhoudinimcp-windows-agents'
 )
 
 $ErrorActionPreference = 'Stop'
@@ -115,7 +115,7 @@ $packagePath = Join-Path (Join-Path $preferencesDir 'packages') "$PackageName.js
 $backupPath = "$packagePath.backup"
 
 if (Test-Path -LiteralPath $packagePath) {
-    if ($PSCmdlet.ShouldProcess($packagePath, 'Remove FXHoudiniMCP Codex package')) {
+    if ($PSCmdlet.ShouldProcess($packagePath, 'Remove FXHoudiniMCP Windows Agents package')) {
         Remove-Item -LiteralPath $packagePath -Force
         Write-Output "Removed Houdini package: $packagePath"
     }

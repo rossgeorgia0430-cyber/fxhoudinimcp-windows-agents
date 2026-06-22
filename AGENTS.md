@@ -1,9 +1,9 @@
-# FXHoudini MCP — Windows Codex guidance
+# FXHoudini MCP - Windows Agents guidance
 
-This repository is a Windows-only FXHoudini MCP fork. Use the fork-local
-`.venv`, the newest installed Houdini unless a task passes `-HoudiniRoot`,
-and the scripts in `scripts/windows`; do not silently run a system Python or
-the source repository beside this fork.
+This repository is a Windows-focused FXHoudini MCP fork for Codex and Claude
+Code. Use the fork-local `.venv`, the newest installed Houdini unless a task
+passes `-HoudiniRoot`, and the scripts in `scripts/windows`; do not silently
+run a system Python or the source repository beside this fork.
 
 ## Completion standard
 
@@ -22,13 +22,13 @@ For HIP spare-parameter edits, do not trust a bridge save response by itself.
 When a task changes `parmTemplateGroup()` or spare parameters, reload the saved
 HIP in a separate Hython process and inspect the target node. Use
 `scripts/windows/verify-hip-node-params.ps1` for this check; it was added after
-a Codex session where `save_scene` reported success but the disk HIP did not
+an agent session where `save_scene` reported success but the disk HIP did not
 contain the new spare parameters.
 
 ## Windows runtime
 
 Run `scripts/windows/install-houdini-package.ps1` once, then launch the GUI
 through `scripts/windows/start-houdini-fork.ps1 -Visible`. It isolates this
-clone from other FXHoudini packages and configures port 18100. Start Codex
-using this repository's `.codex/config.toml`, or use the PowerShell launcher
-directly. GUI tests require an interactive Windows desktop session.
+clone from other FXHoudini packages and configures port 18100. Start Codex with
+this repository's `.codex/config.toml`, or approve the project `.mcp.json` in
+Claude Code. GUI tests require an interactive Windows desktop session.

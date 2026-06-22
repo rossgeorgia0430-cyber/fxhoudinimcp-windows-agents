@@ -7,7 +7,7 @@ $python = Join-Path $repo '.venv\Scripts\python.exe'
 
 if (-not (Test-Path -LiteralPath $python)) {
     $bootstrap = Join-Path $PSScriptRoot 'bootstrap.ps1'
-    throw "The project virtual environment was not found at '$python'. Run '$bootstrap' once, then restart Codex."
+    throw "The project virtual environment was not found at '$python'. Run '$bootstrap' once, then restart the MCP client."
 }
 
 $pythonPath = Join-Path $repo 'python'

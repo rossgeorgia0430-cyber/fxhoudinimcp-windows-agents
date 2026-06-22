@@ -29,6 +29,7 @@ package-lock.json
 
 # MkDocs
 site/
+.cache/
 
 # OS
 *.log

@@ -52,10 +52,11 @@ mkdocs = [
 fxhoudinimcp = "fxhoudinimcp.__main__:main"
 
 [project.urls]
-Homepage = "https://github.com/healkeiser/fxhoudinimcp"
-Documentation = "https://healkeiser.github.io/fxhoudinimcp"
-Repository = "https://github.com/healkeiser/fxhoudinimcp"
-Issues = "https://github.com/healkeiser/fxhoudinimcp/issues"
+Homepage = "https://github.com/rossgeorgia0430-cyber/fxhoudinimcp-windows-agents"
+Documentation = "https://rossgeorgia0430-cyber.github.io/fxhoudinimcp-windows-agents"
+Repository = "https://github.com/rossgeorgia0430-cyber/fxhoudinimcp-windows-agents"
+Issues = "https://github.com/rossgeorgia0430-cyber/fxhoudinimcp-windows-agents/issues"
+Upstream = "https://github.com/healkeiser/fxhoudinimcp"
 
 [tool.hatch.version]
 source = "vcs"

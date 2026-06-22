@@ -1,4 +1,4 @@
-# Codex + Windows
+# Windows Agents
 
 This fork ships project-scoped Codex and Claude Code MCP profiles plus
 portable PowerShell launchers. The checkout may live on any drive or under a
@@ -44,7 +44,7 @@ rebuild it rather than copying that environment:
 .\scripts\windows\bootstrap.ps1 -Recreate
 ```
 
-## Start Houdini and Codex
+## Start Houdini and an Agent Client
 
 ```powershell
 .\scripts\windows\start-houdini-fork.ps1 -Port 18100 -Visible
@@ -82,7 +82,7 @@ so redirected and OneDrive-backed Documents folders are supported. The
 package is written as:
 
 ```text
-<Documents>\houdini<major.minor>\packages\fxhoudinimcp-codex-windows.json
+<Documents>\houdini<major.minor>\packages\fxhoudinimcp-windows-agents.json
 ```
 
 The installer does not overwrite `fxhoudinimcp.json` and does not modify the
@@ -127,7 +127,7 @@ Houdini license.
 
 ## Verify HIP spare parameters
 
-When Codex edits spare parameters or a node `parmTemplateGroup()`, verify the
+When an agent edits spare parameters or a node `parmTemplateGroup()`, verify the
 saved HIP from a fresh Hython process instead of relying only on a bridge
 `save_scene` success response:
 
@@ -149,7 +149,7 @@ state, not the current bridge session state.
 - If bootstrap cannot find Python, pass the full executable path with
   `-Python`.
 - If multiple Houdini builds are installed, pass `-HoudiniRoot` to select one.
-- The Houdini bridge and Codex MCP ports must match. This profile defaults both
+- The Houdini bridge and MCP client ports must match. This profile defaults both
   to `18100`.
 - If Houdini did not load `uiready.py`, start the bridge from Houdini's Python
   shell with a clone-local path:

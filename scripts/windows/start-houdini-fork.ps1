@@ -85,13 +85,14 @@ $houdini = Join-Path $HoudiniRoot 'bin\houdini.exe'
 # files. Houdini only honors a user-preference override when it contains the
 # literal __HVER__ token.
 $prefsRoot = if ([string]::IsNullOrWhiteSpace($PreferencesRoot)) {
-    Join-Path ([Environment]::GetFolderPath('LocalApplicationData')) 'FXHoudiniMCP\codex-windows'
+    Join-Path ([Environment]::GetFolderPath('LocalApplicationData')) 'FXHoudiniMCP\windows-agents'
 } else {
     [Environment]::ExpandEnvironmentVariables($PreferencesRoot)
 }
 $env:HOUDINI_USER_PREF_DIR = "$prefsRoot\__HVER__"
 $env:HOUDINI_PATH = "$(Join-Path $repo 'houdini');&"
 $env:FXHOUDINIMCP_PORT = "$Port"
+$env:HOUDINI_PORT = "$Port"
 $env:FXHOUDINIMCP_AUTOSTART = '1'
 
 $startArgs = @{
@@ -102,6 +103,6 @@ if (-not $Visible) {
     $startArgs.WindowStyle = 'Hidden'
 }
 $process = Start-Process @startArgs
-Write-Output "Started fork-local Houdini (pid $($process.Id), port $Port)."
+Write-Output "Started FXHoudiniMCP Windows Agents Houdini (pid $($process.Id), port $Port)."
 Write-Output "Houdini root: $HoudiniRoot"
 Write-Output "HOUDINI_USER_PREF_DIR=$env:HOUDINI_USER_PREF_DIR"

@@ -6,7 +6,7 @@ param(
     [string]$DocumentsPath,
     [string]$HoudiniPreferencesRoot,
     [ValidatePattern('^[A-Za-z0-9._-]+$')]
-    [string]$PackageName = 'fxhoudinimcp-codex-windows'
+    [string]$PackageName = 'fxhoudinimcp-windows-agents'
 )
 
 $ErrorActionPreference = 'Stop'
@@ -126,7 +126,7 @@ $package = [ordered]@{
     enable = $true
     env = @(
         [ordered]@{
-            FXHOUDINIMCP_CODEX_WINDOWS = [ordered]@{
+            FXHOUDINIMCP_WINDOWS_AGENTS = [ordered]@{
                 value = $houdiniDir
                 method = 'replace'
             }
@@ -136,9 +136,15 @@ $package = [ordered]@{
                 value = "$Port"
                 method = 'replace'
             }
+        },
+        [ordered]@{
+            HOUDINI_PORT = [ordered]@{
+                value = "$Port"
+                method = 'replace'
+            }
         }
     )
-    path = '$FXHOUDINIMCP_CODEX_WINDOWS'
+    path = '$FXHOUDINIMCP_WINDOWS_AGENTS'
 }
 $json = $package | ConvertTo-Json -Depth 8
 

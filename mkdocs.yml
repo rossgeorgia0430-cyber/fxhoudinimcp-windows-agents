@@ -6,8 +6,8 @@
 site_name: fxhoudinimcp
 site_author: Valentin Beaumont
 copyright: Valentin Beaumont | Licensed under the MIT License
-repo_url: https://github.com/healkeiser/fxhoudinimcp
-repo_name: healkeiser/fxhoudinimcp
+repo_url: https://github.com/rossgeorgia0430-cyber/fxhoudinimcp-windows-agents
+repo_name: rossgeorgia0430-cyber/fxhoudinimcp-windows-agents
 edit_uri: edit/main/docs/
 
 ###### Navigation ##############################################################
@@ -18,6 +18,7 @@ nav:
   - How-to:
       - Overview: how-to/index.md
       - Configuration: how-to/configuration.md
+      - Windows Agents: windows-agents.md
       - Tools: how-to/tools.md
   - Technical: technical/
   - Changelog: changelog.md
@@ -128,8 +129,9 @@ plugins:
   - section-index
   - git-revision-date-localized:
       enable_creation_date: true
+      enable_git_follow: false
   - git-committers:
-      repository: healkeiser/fxhoudinimcp
+      repository: rossgeorgia0430-cyber/fxhoudinimcp-windows-agents
       branch: main
       token: !ENV [GH_TOKEN, ""]
   - mkdocstrings:
