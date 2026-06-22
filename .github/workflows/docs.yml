@@ -44,7 +44,10 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GH_TOKEN }}
         run: |
-          VERSION=$(git describe --tags --abbrev=0 2>/dev/null | sed 's/^v//' || echo "0.1.0")
+          VERSION=$(git describe --tags --abbrev=0 2>/dev/null | sed 's/^v//')
+          if [ -z "$VERSION" ]; then
+            VERSION="0.1.0"
+          fi
           mike deploy --push --update-aliases "$VERSION" latest
           git fetch origin gh-pages:gh-pages --force
           mike set-default --push latest

@@ -36,9 +36,10 @@ function Get-PythonInvocation {
         }
     }
 
+    $versionProbe = "import sys; print('.'.join(map(str, sys.version_info[:3])))"
     foreach ($candidate in $candidates) {
         $prefix = $candidate.Prefix
-        $versionText = & $candidate.Command @prefix -c 'import sys; print(".".join(map(str, sys.version_info[:3])))' 2>$null
+        $versionText = & $candidate.Command @prefix -c $versionProbe 2>$null
         if ($LASTEXITCODE -ne 0 -or [string]::IsNullOrWhiteSpace($versionText)) { continue }
         try {
             $version = [version]($versionText | Select-Object -Last 1)
@@ -79,7 +80,7 @@ if (-not (Test-Path -LiteralPath $venvPython)) {
     }
 }
 
-$venvVersion = & $venvPython -c 'import sys; print(".".join(map(str, sys.version_info[:3])))'
+$venvVersion = & $venvPython -c "import sys; print('.'.join(map(str, sys.version_info[:3])))"
 if ($LASTEXITCODE -ne 0) {
     throw "The existing virtual environment is not usable. Run this script again with -Recreate."
 }
