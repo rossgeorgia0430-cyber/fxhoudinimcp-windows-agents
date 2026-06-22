@@ -38,10 +38,12 @@ jobs:
         working-directory: "fxhoudini mcp 中文"
         shell: powershell
         run: |
+          $env:PYTHONPATH = Join-Path (Get-Location) 'python'
           .\.venv\Scripts\python.exe -m pytest -q tests\test_windows_portability.py
 
       - name: Run non-Houdini test suite
         working-directory: "fxhoudini mcp 中文"
         shell: powershell
         run: |
+          $env:PYTHONPATH = Join-Path (Get-Location) 'python'
           .\.venv\Scripts\python.exe -m pytest -q tests --ignore=tests\integration
