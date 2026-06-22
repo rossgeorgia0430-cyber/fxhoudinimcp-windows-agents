@@ -14,6 +14,13 @@ $repo = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
 $venv = Join-Path $repo '.venv'
 $venvPython = Join-Path $venv 'Scripts\python.exe'
 
+# Windows PowerShell 5 and Python 3.10 default to legacy code pages on GitHub's
+# Windows runners. Force UTF-8 so pip can install from Unicode checkout paths.
+$env:PYTHONUTF8 = '1'
+$env:PYTHONIOENCODING = 'utf-8'
+$env:PIP_DISABLE_PIP_VERSION_CHECK = '1'
+$env:NO_COLOR = '1'
+
 function Get-PythonInvocation {
     param([string]$RequestedPython)
 
