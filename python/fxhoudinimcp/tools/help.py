@@ -61,3 +61,34 @@ async def get_help_page(ctx: Context, path: str) -> dict:
     """
     bridge = _get_bridge(ctx)
     return await bridge.execute("help.get_help_page", {"path": path})
+
+
+@mcp.tool()
+async def get_hda_help(
+    ctx: Context,
+    node_type: str,
+    context: str = "Sop",
+) -> dict:
+    """Read help directly off an installed node/HDA definition — including
+    third-party HDAs (SideFX Labs, studio tools) the shipped docs never
+    cover.
+
+    Returns the type description, its embedded help page, and per-parameter
+    help strings. Note: many third-party HDAs ship an empty embedded_help;
+    in that case the description and parm_help are still useful and are
+    returned anyway. For native nodes documented in the manual, search_help
+    / get_help_page give richer prose.
+
+    Args:
+        node_type: Type name, e.g. "labs::mountain" or "scatter".
+        context: Type category — "Sop", "Object", "Driver", "Lop", "Dop",
+            "Cop2", "Vop", "Chop", or "Top" (default "Sop").
+    """
+    bridge = _get_bridge(ctx)
+    return await bridge.execute(
+        "help.get_hda_help",
+        {
+            "node_type": node_type,
+            "context": context,
+        },
+    )

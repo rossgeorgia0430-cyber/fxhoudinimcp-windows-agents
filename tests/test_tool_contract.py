@@ -56,6 +56,6 @@ def wrapper_commands() -> dict[str, str]:
 async def test_every_registered_tool_has_one_explicit_dispatch_command():
     tools = await mcp.list_tools()
     mapping = wrapper_commands()
-    assert len(mapping) == 179
+    assert len(mapping) == 200
     assert {tool.name for tool in tools} == set(mapping) | SPECIAL_MCP_TOOLS
     assert len(set(mapping.values())) == len(mapping)

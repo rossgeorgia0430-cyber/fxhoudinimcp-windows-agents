@@ -15,8 +15,11 @@ or Houdini handlers. Report the exact commands and outcomes.
 ## Houdini work style
 
 Use scene inspection, node discovery/card lookup, graph dry-run, graph build,
-verification, and visual capture as the normal sequence. Preserve all 180 MCP
-tools in this fork. Prefer typed, native tool contracts over opaque JSON.
+verification, and visual capture as the normal sequence. Preserve all 201 MCP
+tools in this fork (the catalog grew from 180 with the render/image/geometry
+verification additions; the new `image` module joins the `core` profile and
+the render helpers surface in `core` via `_PROFILE_EXTRA_TOOLS`). Prefer typed,
+native tool contracts over opaque JSON.
 
 For HIP spare-parameter edits, do not trust a bridge save response by itself.
 When a task changes `parmTemplateGroup()` or spare parameters, reload the saved

@@ -489,6 +489,30 @@ def _get_expression(node_path: str, parm_name: str, **_: Any) -> dict[str, Any]:
 register_handler("parameters.get_expression", _get_expression)
 
 
+###### Handler: parameters.press_button
+
+
+def _press_button(node_path: str, parm_name: str, **_: Any) -> dict[str, Any]:
+    """Trigger a button (callback) parameter on a node."""
+    node = _resolve_node(node_path)
+    parm = node.parm(parm_name)
+    if parm is None:
+        raise ValueError(
+            f"Parameter '{parm_name}' not found on node '{node_path}'."
+        )
+
+    parm.pressButton()
+
+    return {
+        "pressed": True,
+        "node_path": node.path(),
+        "parm_name": parm_name,
+    }
+
+
+register_handler("parameters.press_button", _press_button)
+
+
 ###### Handler: parameters.revert_parameter
 
 

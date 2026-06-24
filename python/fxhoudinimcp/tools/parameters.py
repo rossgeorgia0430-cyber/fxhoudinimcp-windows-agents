@@ -1,6 +1,6 @@
 """MCP tools for Houdini parameter operations.
 
-Exposes 10 tools covering parameter get/set, expressions, channel
+Exposes 12 tools covering parameter get/set, expressions, channel
 references, locking, schema inspection, and spare parameter creation.
 """
 
@@ -161,6 +161,36 @@ async def get_expression(ctx: Context, node_path: str, parm_name: str) -> dict:
     return await bridge.execute(
         "parameters.get_expression",
         {"node_path": node_path, "parm_name": parm_name},
+    )
+
+
+###### parameters.press_button
+
+
+@mcp.tool()
+async def press_button(
+    ctx: Context,
+    node_path: str,
+    parm_name: str,
+    timeout: float | None = None,
+) -> dict:
+    """Trigger a button (callback) parameter on a node.
+
+    A button callback runs synchronously and can take a long time — an HDA
+    "Render All" or "Reload Geometry" may cook for many seconds. Pass an
+    explicit `timeout` for such buttons so the default (120s) doesn't abandon
+    the call mid-callback.
+
+    Args:
+        node_path: Node path.
+        parm_name: Button parameter name.
+        timeout: Operation budget in seconds. Omit for the default (120s).
+    """
+    bridge = _get_bridge(ctx)
+    return await bridge.execute(
+        "parameters.press_button",
+        {"node_path": node_path, "parm_name": parm_name},
+        timeout=timeout,
     )
 
 

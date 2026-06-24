@@ -38,6 +38,7 @@ _HANDLER_MODULES = [
     "chop_handlers",
     "cache_handlers",
     "take_handlers",
+    "image_handlers",
 ]
 
 _loaded = []

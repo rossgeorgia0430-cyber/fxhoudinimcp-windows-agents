@@ -309,6 +309,123 @@ def get_node_info(node_path: str) -> dict:
     }
 
 
+###### nodes.get_menu_items
+
+def get_menu_items(node_path: str, parm_name: str) -> dict:
+    """Return the menu tokens and their human labels for a menu parameter.
+
+    get_node_card / get_parameter_schema expose a menu parameter's stored
+    token values (e.g. "0".."3") but not what each one means. This pairs
+    every stored token with its menu label so an agent can tell which index
+    selects which option, plus the current selection.
+
+    Args:
+        node_path: Absolute path to the node.
+        parm_name: Name of the parameter to inspect.
+    """
+    node = _get_node(node_path)
+    parm = node.parm(parm_name)
+    if parm is None:
+        raise ValueError(
+            f"Parameter '{parm_name}' not found on node {node_path}."
+        )
+    pt = parm.parmTemplate()
+
+    # menuItems() is absent on templates that can never hold a menu (e.g.
+    # Float) and returns an empty tuple on Int/String templates that simply
+    # have no menu configured — both mean "not a menu" for our purposes.
+    try:
+        items = list(pt.menuItems())
+    except AttributeError:
+        items = []
+
+    if not items:
+        return {
+            "is_menu": False,
+            "node_path": node.path(),
+            "parm_name": parm_name,
+        }
+
+    return {
+        "is_menu": True,
+        "node_path": node.path(),
+        "parm_name": parm_name,
+        "items": items,
+        "labels": list(pt.menuLabels()),
+        "current": parm.evalAsString(),
+    }
+
+
+###### nodes.get_node_messages
+
+def get_node_messages(root_path: str = "/", severity: str = "all") -> dict:
+    """Report node errors and warnings separately under a root network.
+
+    Unlike get_node_errors_detailed (which lumps warnings into its error
+    count), this keeps the two cohorts apart so a node that only emits a
+    warning is never miscounted as an error. ``severity`` filters which
+    nodes are reported: "error" (nodes with real errors), "warning" (nodes
+    with warnings), or "all".
+
+    Args:
+        root_path: Root network to scan recursively (default "/").
+        severity: One of "error", "warning", or "all".
+    """
+    if severity not in ("error", "warning", "all"):
+        raise ValueError(
+            f"Unknown severity '{severity}'. Use 'error', 'warning', or 'all'."
+        )
+
+    root = _get_node(root_path)
+    nodes_to_scan = [root]
+    nodes_to_scan.extend(root.allSubChildren())
+
+    error_count = 0
+    warning_count = 0
+    reported: list[dict] = []
+
+    for node in nodes_to_scan:
+        try:
+            errors = list(node.errors())
+        except Exception:
+            errors = []
+        try:
+            warnings = list(node.warnings())
+        except Exception:
+            warnings = []
+
+        has_errors = bool(errors)
+        has_warnings = bool(warnings)
+
+        if has_errors:
+            error_count += 1
+        if has_warnings:
+            warning_count += 1
+
+        # Filter which nodes appear in the listing.
+        if severity == "error" and not has_errors:
+            continue
+        if severity == "warning" and not has_warnings:
+            continue
+        if severity == "all" and not (has_errors or has_warnings):
+            continue
+
+        reported.append({
+            "path": node.path(),
+            "type": node.type().name(),
+            "errors": errors,
+            "warnings": warnings,
+        })
+
+    return {
+        "root_path": root_path,
+        "severity": severity,
+        "error_count": error_count,
+        "warning_count": warning_count,
+        "nodes": reported,
+    }
+
+
 ###### nodes.list_children
 
 def list_children(
@@ -780,6 +897,8 @@ register_handler("nodes.rename_node", rename_node)
 register_handler("nodes.copy_node", copy_node)
 register_handler("nodes.move_node", move_node)
 register_handler("nodes.get_node_info", get_node_info)
+register_handler("nodes.get_menu_items", get_menu_items)
+register_handler("nodes.get_node_messages", get_node_messages)
 register_handler("nodes.list_children", list_children)
 register_handler("nodes.find_nodes", find_nodes)
 register_handler("nodes.list_node_types", list_node_types)

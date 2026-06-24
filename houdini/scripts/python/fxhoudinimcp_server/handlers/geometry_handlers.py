@@ -781,3 +781,345 @@ def _find_nearest_point(
     }
 
 register_handler("geometry.find_nearest_point", _find_nearest_point)
+
+
+###### Helpers — frame-based attribute cooking
+
+def _find_attrib(geo: hou.Geometry, attrib_name: str, attrib_class: str) -> Any:
+    """Find an attribute by class, raising ValueError if it is missing.
+
+    Args:
+        geo: Cooked geometry to search.
+        attrib_name: Attribute name.
+        attrib_class: "point", "prim", "vertex", or "detail"/"global".
+
+    Returns:
+        The matching hou.Attrib.
+
+    Raises:
+        ValueError: if attrib_class is invalid or the attribute is absent.
+    """
+    cls = attrib_class.lower()
+    finders = {
+        "point": geo.findPointAttrib,
+        "prim": geo.findPrimAttrib,
+        "vertex": geo.findVertexAttrib,
+        "detail": geo.findGlobalAttrib,
+        "global": geo.findGlobalAttrib,
+    }
+    finder = finders.get(cls)
+    if finder is None:
+        raise ValueError(
+            f"Invalid attrib_class: {attrib_class!r}. "
+            f"Use one of {list(finders.keys())}"
+        )
+    attrib = finder(attrib_name)
+    if attrib is None:
+        raise ValueError(
+            f"{cls.title()} attribute '{attrib_name}' not found on geometry"
+        )
+    return attrib
+
+
+def _read_flat_attrib(
+    geo: hou.Geometry, attrib_name: str, attrib_class: str
+) -> tuple[list[float], int, int]:
+    """Read an attribute as a flat, element-major list of numbers.
+
+    Mirrors the value-fetching done by ``geometry.get_attrib_values``: it uses
+    the bulk ``*FloatAttribValues`` / ``*IntAttribValues`` accessors for
+    point/prim/vertex classes and ``geo.attribValue`` for detail, then
+    flattens any tuple components into a single sequence.
+
+    Args:
+        geo: Cooked geometry to read from.
+        attrib_name: Attribute name.
+        attrib_class: "point", "prim", "vertex", or "detail"/"global".
+
+    Returns:
+        A ``(values, tuple_size, count)`` triple where ``values`` is the flat
+        element-major list, ``tuple_size`` is the per-element component count,
+        and ``count`` is the number of elements.
+
+    Raises:
+        ValueError: if the class is invalid, the attribute is missing, or the
+            data type is not numeric (float/int).
+    """
+    attrib = _find_attrib(geo, attrib_name, attrib_class)
+    tuple_size = max(attrib.size(), 1)
+    data_type = attrib.dataType()
+    cls = attrib_class.lower()
+
+    if cls in ("detail", "global"):
+        raw = geo.attribValue(attrib_name)
+        flat = list(raw) if isinstance(raw, (list, tuple)) else [raw]
+        if not all(isinstance(component, (int, float)) for component in flat):
+            raise ValueError(
+                f"Attribute '{attrib_name}' is not numeric (float/int)"
+            )
+        return [float(component) for component in flat], tuple_size, 1
+
+    bulk_getters = {
+        "point": (geo.pointFloatAttribValues, geo.pointIntAttribValues),
+        "prim": (geo.primFloatAttribValues, geo.primIntAttribValues),
+        "vertex": (geo.vertexFloatAttribValues, geo.vertexIntAttribValues),
+    }
+    float_getter, int_getter = bulk_getters[cls]
+    if data_type == hou.attribData.Float:
+        all_values = float_getter(attrib_name)
+    elif data_type == hou.attribData.Int:
+        all_values = int_getter(attrib_name)
+    else:
+        raise ValueError(
+            f"Attribute '{attrib_name}' has non-numeric type "
+            f"{data_type.name()}; only float/int are supported"
+        )
+
+    flat = [float(value) for value in all_values]
+    count = len(flat) // tuple_size if tuple_size else 0
+    return flat, tuple_size, count
+
+
+def _component_stats(
+    flat: list[float], tuple_size: int
+) -> tuple[list[float], list[float], list[float], int]:
+    """Compute per-component min/max/mean over an element-major flat list.
+
+    Args:
+        flat: Element-major values (every ``tuple_size`` items is one element).
+        tuple_size: Number of components per element.
+
+    Returns:
+        A ``(mins, maxs, means, count)`` tuple. The stat lists are empty when
+        there are no elements.
+    """
+    count = len(flat) // tuple_size if tuple_size else 0
+    if count == 0:
+        return [], [], [], 0
+
+    mins = [float("inf")] * tuple_size
+    maxs = [float("-inf")] * tuple_size
+    sums = [0.0] * tuple_size
+    for element_index in range(count):
+        base = element_index * tuple_size
+        for component in range(tuple_size):
+            value = flat[base + component]
+            if value < mins[component]:
+                mins[component] = value
+            if value > maxs[component]:
+                maxs[component] = value
+            sums[component] += value
+    means = [total / count for total in sums]
+    return mins, maxs, means, count
+
+
+def _max_abs_diff(a: list[float], b: list[float]) -> tuple[float, int, int]:
+    """Compare two flat numeric lists elementwise.
+
+    Args:
+        a: First flat list.
+        b: Second flat list.
+
+    Returns:
+        A ``(max_abs_diff, num_differing, num_compared)`` tuple where
+        ``num_compared`` is ``min(len(a), len(b))``. If the lengths differ the
+        surplus tail is ignored for the diff but the lengths can be inspected
+        by the caller.
+    """
+    num_compared = min(len(a), len(b))
+    max_diff = 0.0
+    num_differing = 0
+    for index in range(num_compared):
+        diff = abs(a[index] - b[index])
+        if diff > max_diff:
+            max_diff = diff
+        if diff > 0.0:
+            num_differing += 1
+    return max_diff, num_differing, num_compared
+
+
+###### geometry.attribute_stats
+
+def _attribute_stats(
+    *,
+    node_path: str,
+    attrib_name: str,
+    attrib_class: str = "point",
+    frames: list[float] | None = None,
+) -> dict[str, Any]:
+    """Per-frame min/max/mean for an attribute across one or more frames.
+
+    Cooks the node at each requested frame, reads the attribute, and reports
+    per-component statistics. Useful for verifying that an animated attribute
+    moves through the value range you expect over time.
+
+    Args:
+        node_path: SOP node path.
+        attrib_name: Attribute name.
+        attrib_class: "point", "prim", "vertex", or "detail".
+        frames: Frame numbers to sample; defaults to the current frame.
+
+    Raises:
+        ValueError: if the attribute or class is invalid.
+    """
+    sample_frames = frames if frames else [hou.frame()]
+
+    components = 0
+    per_frame: list[dict[str, Any]] = []
+    original_frame = hou.frame()
+    try:
+        for frame in sample_frames:
+            hou.setFrame(frame)
+            geo = _get_sop_geo(node_path)
+            flat, tuple_size, _ = _read_flat_attrib(
+                geo, attrib_name, attrib_class
+            )
+            components = tuple_size
+            mins, maxs, means, count = _component_stats(flat, tuple_size)
+            per_frame.append({
+                "frame": frame,
+                "min": mins,
+                "max": maxs,
+                "mean": means,
+                "count": count,
+            })
+    finally:
+        hou.setFrame(original_frame)
+
+    return {
+        "node_path": node_path,
+        "attrib": attrib_name,
+        "class": attrib_class,
+        "components": components,
+        "per_frame": per_frame,
+    }
+
+register_handler("geometry.attribute_stats", _attribute_stats)
+
+
+###### geometry.compare_frames
+
+def _compare_frames(
+    *,
+    node_path: str,
+    frame_a: float,
+    frame_b: float,
+    attrib_name: str = "P",
+    attrib_class: str = "point",
+    tolerance: float = 1e-6,
+) -> dict[str, Any]:
+    """Compare an attribute between two frames elementwise.
+
+    Cooks the node at ``frame_a`` and ``frame_b``, reads the attribute at each,
+    and reports the largest absolute difference. The canonical loop-seam check:
+    e.g. for a 150-frame loop, frame 1 vs frame 151 should be identical.
+
+    Args:
+        node_path: SOP node path.
+        frame_a: First frame.
+        frame_b: Second frame.
+        attrib_name: Attribute name (default "P").
+        attrib_class: "point", "prim", "vertex", or "detail".
+        tolerance: Max abs diff still treated as identical.
+
+    Raises:
+        ValueError: if the attribute or class is invalid.
+    """
+    original_frame = hou.frame()
+    try:
+        hou.setFrame(frame_a)
+        geo_a = _get_sop_geo(node_path)
+        flat_a, _, _ = _read_flat_attrib(geo_a, attrib_name, attrib_class)
+
+        hou.setFrame(frame_b)
+        geo_b = _get_sop_geo(node_path)
+        flat_b, tuple_size, _ = _read_flat_attrib(
+            geo_b, attrib_name, attrib_class
+        )
+    finally:
+        hou.setFrame(original_frame)
+
+    max_diff, num_differing, num_compared = _max_abs_diff(flat_a, flat_b)
+    num_elements = num_compared // tuple_size if tuple_size else 0
+
+    return {
+        "node_path": node_path,
+        "attrib": attrib_name,
+        "frame_a": frame_a,
+        "frame_b": frame_b,
+        "identical": max_diff <= tolerance,
+        "max_abs_diff": max_diff,
+        "num_differing": num_differing,
+        "num_elements": num_elements,
+    }
+
+register_handler("geometry.compare_frames", _compare_frames)
+
+
+###### geometry.verify_animation
+
+def _verify_animation(
+    *,
+    node_path: str,
+    frames: list[float] | None = None,
+    attrib_name: str = "P",
+    attrib_class: str = "point",
+) -> dict[str, Any]:
+    """Check whether an attribute changes over the playback range.
+
+    Samples several frames (the playback range when ``frames`` is omitted) and,
+    for each, reports the max absolute difference of the attribute against the
+    first sampled frame. ``is_animated`` is True when any frame differs.
+
+    Args:
+        node_path: SOP node path.
+        frames: Frame numbers to sample; defaults to ~5 spread across the
+            playback range.
+        attrib_name: Attribute name (default "P").
+        attrib_class: "point", "prim", "vertex", or "detail".
+
+    Raises:
+        ValueError: if the attribute or class is invalid.
+    """
+    if frames:
+        sample_frames = list(frames)
+    else:
+        start, end = hou.playbar.playbackRange()
+        if end <= start:
+            sample_frames = [start]
+        else:
+            steps = 5
+            sample_frames = [
+                start + (end - start) * i / (steps - 1) for i in range(steps)
+            ]
+
+    max_change = 0.0
+    per_frame_change: list[dict[str, Any]] = []
+    original_frame = hou.frame()
+    try:
+        reference: list[float] | None = None
+        for frame in sample_frames:
+            hou.setFrame(frame)
+            geo = _get_sop_geo(node_path)
+            flat, _, _ = _read_flat_attrib(geo, attrib_name, attrib_class)
+            if reference is None:
+                reference = flat
+                max_diff = 0.0
+            else:
+                max_diff, _, _ = _max_abs_diff(reference, flat)
+            if max_diff > max_change:
+                max_change = max_diff
+            per_frame_change.append({"frame": frame, "max_diff": max_diff})
+    finally:
+        hou.setFrame(original_frame)
+
+    return {
+        "node_path": node_path,
+        "attrib": attrib_name,
+        "frames_checked": sample_frames,
+        "is_animated": max_change > 1e-6,
+        "max_change": max_change,
+        "per_frame_change": per_frame_change,
+    }
+
+register_handler("geometry.verify_animation", _verify_animation)

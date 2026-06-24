@@ -2,7 +2,7 @@
 
 The Houdini plugin always loads every dispatcher handler.  The external MCP
 process can expose a smaller, task-oriented subset so clients do not have to
-rank 180 schemas on every turn.  Filtering happens against FastMCP's actual
+rank 201 schemas on every turn.  Filtering happens against FastMCP's actual
 ``ToolManager`` after decorators have registered the complete wrapper catalog.
 """
 
@@ -35,6 +35,7 @@ _CORE_MODULES = frozenset(
         "viewport",
         "code",
         "geometry",
+        "image",
     }
 )
 
@@ -98,6 +99,30 @@ _PROFILE_WORKFLOW_TOOLS: dict[str, frozenset[str]] = {
     "full": frozenset(),
 }
 
+# High-value tools defined in a non-core module that should still surface in
+# focused profiles. Unlike _PROFILE_WORKFLOW_TOOLS, these match by tool name
+# regardless of the defining module, so the render/bake helpers in the
+# ``rendering`` module appear in ``core`` without pulling in the whole
+# rendering surface.
+_RENDER_HELPER_TOOLS = frozenset(
+    {
+        "render_rop",
+        "list_rop_outputs",
+        "start_render_job",
+        "get_render_job",
+        "list_render_jobs",
+        "cancel_render_job",
+    }
+)
+
+_PROFILE_EXTRA_TOOLS: dict[str, frozenset[str]] = {
+    "core": _RENDER_HELPER_TOOLS,
+    "modeling": _RENDER_HELPER_TOOLS,
+    "simulation": _RENDER_HELPER_TOOLS,
+    "usd-render": frozenset(),  # rendering module already included
+    "full": frozenset(),
+}
+
 PROFILE_DESCRIPTIONS = {
     "core": "Scene, node, parameter, graph, geometry inspection, context, viewport, help, and fallback code tools.",
     "modeling": "Core plus SOP geometry, VEX, materials, animation, HDAs, and modeling workflows.",
@@ -151,10 +176,12 @@ def select_profile_tools(profile: str, tools: Iterable[Tool]) -> set[str]:
         return {tool.name for tool in tool_list}
 
     workflow_tools = _PROFILE_WORKFLOW_TOOLS[profile]
+    extra_tools = _PROFILE_EXTRA_TOOLS.get(profile, frozenset())
     return {
         tool.name
         for tool in tool_list
         if _tool_module(tool) in modules
+        or tool.name in extra_tools
         or (_tool_module(tool) == "workflows" and tool.name in workflow_tools)
     }
 

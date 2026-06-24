@@ -45,7 +45,7 @@ async def _exercise_stdio_server() -> None:
             assert initialized.serverInfo.name == "FXHoudini"
 
             tools = await session.list_tools()
-            assert len(tools.tools) == 180
+            assert len(tools.tools) == 201
             assert {tool.name for tool in tools.tools} >= {
                 "build_network",
                 "get_node_card",

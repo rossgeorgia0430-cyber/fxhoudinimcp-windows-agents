@@ -7,8 +7,13 @@ operations including Karma, OpenGL, and other Houdini renderers.
 from __future__ import annotations
 
 # Built-in
+import json
 import logging
 import os
+import subprocess
+import sys
+import time
+import uuid
 
 # Third-party
 import hou
@@ -17,6 +22,30 @@ import hou
 from fxhoudinimcp_server.dispatcher import register_handler
 
 logger = logging.getLogger(__name__)
+
+# Module-global registry of async render jobs launched by start_render_job.
+# Maps job_id -> {"pid", "hip", "rop", "status_file", "started_ts", "process"}.
+# The "process" entry holds the live subprocess.Popen handle when available.
+_RENDER_JOBS: dict[str, dict] = {}
+
+# Render button parm names tried, in order, when use_render_button is set with
+# no explicit button_parm. Shared by render_rop and the async worker.
+_RENDER_BUTTON_CANDIDATES = ("renderall", "execute", "render", "rendersingle")
+
+# Output-path parm names checked explicitly, plus any string parm whose name
+# starts with one of _OUTPUT_PARM_PREFIXES (covers Labs VAT path_pos/path_geo).
+_OUTPUT_PARM_NAMES = (
+    "sopoutput",
+    "copoutput",
+    "lopoutput",
+    "dopoutput",
+    "picture",
+    "vm_picture",
+    "output",
+    "filename",
+    "file",
+)
+_OUTPUT_PARM_PREFIXES = ("path_", "output", "file")
 
 
 ###### rendering.render_viewport
@@ -622,6 +651,541 @@ def get_render_progress(node_path: str) -> dict:
     }
 
 
+###### rendering.list_rop_outputs
+
+def _resolve_rop_outputs(node) -> list:
+    """Resolve every output-path parm on a ROP to a stat-ed file entry.
+
+    Checks the known output-parm names first, then any string parm whose name
+    starts with ``path_`` / ``output`` / ``file`` so SideFX Labs HDAs that
+    write to ``path_pos`` / ``path_geo`` / ``path_n`` (e.g. Vertex Animation
+    Textures) are captured too. Each parm is evaluated then run through
+    ``hou.expandString`` before stat-ing. Results are de-duped by resolved
+    path.
+
+    Args:
+        node: The ROP/Driver ``hou.Node`` to inspect.
+
+    Returns:
+        A list of ``{"parm", "path", "exists", "size", "mtime"}`` dicts.
+    """
+    outputs: list = []
+    seen_paths: set = set()
+
+    def _consider(parm) -> None:
+        if parm is None:
+            return
+        try:
+            raw = parm.eval()
+        except (hou.OperationFailed, AttributeError, TypeError) as exc:
+            logger.debug("Could not eval parm '%s': %s", parm.name(), exc)
+            return
+        if not raw or not isinstance(raw, str):
+            return
+        try:
+            resolved = hou.expandString(raw)
+        except hou.OperationFailed as exc:
+            logger.debug("Could not expand '%s': %s", raw, exc)
+            resolved = raw
+        if not resolved or resolved in seen_paths:
+            return
+        seen_paths.add(resolved)
+
+        exists = False
+        size = None
+        mtime = None
+        try:
+            if os.path.isfile(resolved):
+                stat = os.stat(resolved)
+                exists = True
+                size = stat.st_size
+                mtime = stat.st_mtime
+        except OSError as exc:
+            logger.debug("Could not stat '%s': %s", resolved, exc)
+
+        outputs.append(
+            {
+                "parm": parm.name(),
+                "path": resolved,
+                "exists": exists,
+                "size": size,
+                "mtime": mtime,
+            }
+        )
+
+    for parm_name in _OUTPUT_PARM_NAMES:
+        _consider(node.parm(parm_name))
+
+    try:
+        all_parms = node.parms()
+    except (hou.OperationFailed, AttributeError) as exc:
+        logger.debug("Could not list parms for '%s': %s", node.path(), exc)
+        all_parms = ()
+    for parm in all_parms:
+        try:
+            name = parm.name()
+        except (hou.OperationFailed, AttributeError):
+            continue
+        if name.startswith(_OUTPUT_PARM_PREFIXES):
+            _consider(parm)
+
+    return outputs
+
+
+def list_rop_outputs(node_path: str) -> dict:
+    """List every resolved output file path declared on a ROP node.
+
+    Resolves all known output-path parms plus any ``path_*`` / ``output*`` /
+    ``file*`` string parm (covering SideFX Labs HDAs such as Vertex Animation
+    Textures), expands variables, and stats each file. Useful for confirming
+    that a render (especially an HDA button bake) actually wrote its files.
+
+    Args:
+        node_path: Path to the ROP/Driver node.
+
+    Returns:
+        Dict with ``node_path`` and ``outputs`` (de-duped by resolved path).
+    """
+    node = hou.node(node_path)
+    if node is None:
+        raise ValueError(f"Node not found: {node_path}")
+
+    return {
+        "node_path": node.path(),
+        "outputs": _resolve_rop_outputs(node),
+    }
+
+
+###### rendering.render_rop
+
+def render_rop(
+    node_path: str,
+    frame_range: list = None,
+    use_render_button: bool = False,
+    button_parm: str = None,
+    verbose: bool = False,
+) -> dict:
+    """Render a ROP node synchronously, optionally via its render BUTTON.
+
+    For most ROPs (Mantra/Karma/Alembic/geometry) ``node.render()`` is correct.
+    But some HDAs — notably SideFX Labs "Vertex Animation Textures" — only run
+    their real multi-pass bake when their render BUTTON is pressed;
+    ``node.render()`` silently produces empty output. Set
+    ``use_render_button=True`` for those: the button parm is ``button_parm`` if
+    given, else the first existing of ``renderall`` / ``execute`` / ``render``
+    / ``rendersingle``.
+
+    This blocks Houdini's main thread until the render finishes, so the caller
+    must pass a generous ``timeout`` through the MCP layer (default 600s) for
+    real renders. This is the RECOMMENDED path for UI-dependent HDA bakes,
+    which the async/subprocess path cannot run reliably.
+
+    Args:
+        node_path: Path to the ROP/Driver node.
+        frame_range: Optional ``[start, end]`` or ``[start, end, increment]``.
+            Ignored when ``use_render_button`` is set.
+        use_render_button: Press the HDA render button instead of calling
+            ``node.render()``.
+        button_parm: Explicit render-button parm name to press.
+        verbose: Pass ``verbose=True`` to ``node.render()``.
+
+    Returns:
+        Dict with ``node_path``, ``rendered``, ``used_button``,
+        ``button_parm``, ``frame_range``, ``errors``, ``warnings``, and
+        ``outputs`` (resolved via :func:`list_rop_outputs`).
+    """
+    node = hou.node(node_path)
+    if node is None:
+        raise ValueError(f"Node not found: {node_path}")
+
+    used_button = False
+    button_name = None
+
+    if use_render_button:
+        if button_parm:
+            btn = node.parm(button_parm)
+            if btn is None:
+                raise ValueError(
+                    f"Render button parm '{button_parm}' not found on "
+                    f"{node_path}."
+                )
+        else:
+            btn = None
+            for candidate in _RENDER_BUTTON_CANDIDATES:
+                btn = node.parm(candidate)
+                if btn is not None:
+                    break
+            if btn is None:
+                raise ValueError(
+                    f"No render button parm found on {node_path}. Tried: "
+                    f"{list(_RENDER_BUTTON_CANDIDATES)}. Pass an explicit "
+                    "button_parm."
+                )
+        used_button = True
+        button_name = btn.name()
+        btn.pressButton()
+    elif frame_range is not None:
+        if len(frame_range) < 2:
+            raise ValueError("frame_range must have at least [start, end].")
+        start = float(frame_range[0])
+        end = float(frame_range[1])
+        inc = float(frame_range[2]) if len(frame_range) > 2 else 1.0
+        node.render(frame_range=(start, end, inc), verbose=verbose)
+    else:
+        node.render(verbose=verbose)
+
+    try:
+        errors = list(node.errors()) if node.errors() else []
+    except (hou.OperationFailed, AttributeError) as exc:
+        logger.debug("Could not read errors for '%s': %s", node_path, exc)
+        errors = []
+    try:
+        warnings = list(node.warnings()) if node.warnings() else []
+    except (hou.OperationFailed, AttributeError) as exc:
+        logger.debug("Could not read warnings for '%s': %s", node_path, exc)
+        warnings = []
+
+    return {
+        "node_path": node.path(),
+        "rendered": True,
+        "used_button": used_button,
+        "button_parm": button_name,
+        "frame_range": frame_range,
+        "errors": errors,
+        "warnings": warnings,
+        "outputs": _resolve_rop_outputs(node),
+    }
+
+
+###### rendering.start_render_job
+
+def _worker_script_path() -> str:
+    """Return the absolute path to the standalone _render_worker.py script."""
+    return os.path.normpath(
+        os.path.join(os.path.dirname(__file__), os.pardir, "_render_worker.py")
+    )
+
+
+def _job_dir() -> str:
+    """Return (creating if needed) the sidecar directory for async render jobs.
+
+    Placed next to the current hip file as ``.fxmcp_renderjobs`` so temp hips
+    and status files live with the project; falls back to a temp dir for an
+    unsaved scene.
+    """
+    hip_path = hou.hipFile.path()
+    base = os.path.dirname(hip_path) if hip_path else ""
+    if not base or not os.path.isdir(base):
+        import tempfile
+
+        base = tempfile.gettempdir()
+    job_dir = os.path.join(base, ".fxmcp_renderjobs")
+    os.makedirs(job_dir, exist_ok=True)
+    return job_dir
+
+
+def start_render_job(
+    node_path: str,
+    frame_range: list = None,
+    use_render_button: bool = False,
+    button_parm: str = None,
+) -> dict:
+    """Launch a detached hython process that renders a ROP, returning at once.
+
+    The current hip is saved to a temporary sidecar (its file association is
+    immediately restored so the interactive session keeps its original name),
+    then ``hython _render_worker.py`` is spawned to render OUTSIDE the live
+    session. This never blocks Houdini's main thread or the dispatcher budget,
+    and is the best path for standard ROPs (Mantra/Karma/Alembic/geometry).
+
+    CAVEAT: hython has no UI, so HDA render BUTTONS whose callback needs
+    ``hou.ui`` (e.g. Labs "Vertex Animation Textures" "Render All") may not work
+    here — use the synchronous :func:`render_rop` with a generous ``timeout``
+    for those instead.
+
+    Args:
+        node_path: Path to the ROP/Driver node.
+        frame_range: Optional ``[start, end]`` or ``[start, end, increment]``.
+        use_render_button: Press the ROP's render button (see caveat).
+        button_parm: Explicit render-button parm name.
+
+    Returns:
+        Dict with ``job_id``, ``pid``, and ``status_file``.
+    """
+    node = hou.node(node_path)
+    if node is None:
+        raise ValueError(f"Node not found: {node_path}")
+
+    hfs = hou.expandString("$HFS")
+    hython = os.path.join(hfs, "bin", "hython.exe")
+    if not os.path.isfile(hython):
+        # Non-Windows fallback; primary target is Windows hython.exe.
+        alt = os.path.join(hfs, "bin", "hython")
+        hython = alt if os.path.isfile(alt) else hython
+
+    worker = _worker_script_path()
+    if not os.path.isfile(worker):
+        raise RuntimeError(f"Render worker script not found: {worker}")
+
+    job_id = uuid.uuid4().hex
+    job_dir = _job_dir()
+    temp_hip = os.path.join(job_dir, f"{job_id}.hip")
+    status_file = os.path.join(job_dir, f"{job_id}.json")
+
+    # Save a sidecar copy for the worker, then restore the session's own file
+    # association so the user's interactive session is unchanged.
+    original = hou.hipFile.path()
+    hou.hipFile.save(file_name=temp_hip, save_to_recent_files=False)
+    if original:
+        hou.hipFile.setName(original)
+
+    cmd = [hython, worker, temp_hip, node.path(), status_file]
+    if not use_render_button and frame_range is not None and len(frame_range) >= 2:
+        start = float(frame_range[0])
+        end = float(frame_range[1])
+        inc = float(frame_range[2]) if len(frame_range) > 2 else 1.0
+        cmd += [str(start), str(end), str(inc)]
+    if use_render_button:
+        cmd.append("--button")
+        if button_parm:
+            cmd.append(button_parm)
+
+    # Detach so the render outlives this dispatch call. On Windows, a new
+    # process group prevents the child from dying with the parent console.
+    creationflags = 0
+    if sys.platform == "win32":
+        creationflags = getattr(subprocess, "CREATE_NEW_PROCESS_GROUP", 0) | getattr(
+            subprocess, "DETACHED_PROCESS", 0
+        )
+    log_file = os.path.join(job_dir, f"{job_id}.log")
+    # The handle must outlive this function so the detached child can keep
+    # writing to it; a context manager would close it immediately. The OS
+    # reclaims the descriptor when the worker process exits.
+    log_handle = open(log_file, "w", encoding="utf-8")  # noqa: SIM115
+    process = subprocess.Popen(
+        cmd,
+        stdout=log_handle,
+        stderr=subprocess.STDOUT,
+        creationflags=creationflags,
+        close_fds=True,
+    )
+
+    started_ts = time.time()
+    _RENDER_JOBS[job_id] = {
+        "pid": process.pid,
+        "hip": temp_hip,
+        "rop": node.path(),
+        "status_file": status_file,
+        "log_file": log_file,
+        "started_ts": started_ts,
+        "process": process,
+        "frame_range": frame_range,
+        "use_render_button": use_render_button,
+        "button_parm": button_parm,
+    }
+
+    return {
+        "job_id": job_id,
+        "pid": process.pid,
+        "status_file": status_file,
+    }
+
+
+###### rendering.get_render_job
+
+def _process_alive(pid: int, process) -> bool | None:
+    """Best-effort liveness check for a render job's process.
+
+    Prefers the live ``Popen`` handle, then ``psutil`` if installed, else
+    returns ``None`` (unknown) so the status file remains the source of truth.
+    """
+    if process is not None:
+        return process.poll() is None
+    try:
+        import psutil  # type: ignore
+
+        return psutil.pid_exists(pid)
+    except Exception:  # noqa: BLE001 - psutil optional / probe is best-effort
+        return None
+
+
+def _read_status_file(status_file: str) -> dict:
+    """Read and JSON-parse a worker status file, tolerating partial writes."""
+    if not status_file or not os.path.isfile(status_file):
+        return {}
+    try:
+        with open(status_file, encoding="utf-8") as handle:
+            return json.load(handle)
+    except (OSError, ValueError) as exc:
+        logger.debug("Could not read status file '%s': %s", status_file, exc)
+        return {}
+
+
+def _read_log_tail(log_file: str, max_chars: int = 4000) -> str:
+    """Return the tail of a job's log file, capped at ``max_chars``."""
+    if not log_file or not os.path.isfile(log_file):
+        return ""
+    try:
+        with open(log_file, encoding="utf-8", errors="replace") as handle:
+            data = handle.read()
+    except OSError as exc:
+        logger.debug("Could not read log file '%s': %s", log_file, exc)
+        return ""
+    return data[-max_chars:]
+
+
+def get_render_job(job_id: str) -> dict:
+    """Report the state of an async render job started by start_render_job.
+
+    Combines the worker's status JSON with a liveness check on the process. If
+    the worker reports ``done`` / ``failed`` that is authoritative; otherwise
+    the process liveness disambiguates ``running`` from a crashed worker that
+    never wrote a terminal status.
+
+    Args:
+        job_id: The id returned by :func:`start_render_job`.
+
+    Returns:
+        Dict with ``job_id``, ``state`` (``running`` / ``done`` / ``failed`` /
+        ``unknown``), ``returncode``, ``elapsed``, ``log_tail`` and
+        ``outputs``.
+    """
+    job = _RENDER_JOBS.get(job_id)
+    if job is None:
+        raise ValueError(f"Unknown render job: {job_id}")
+
+    status = _read_status_file(job["status_file"])
+    process = job.get("process")
+    alive = _process_alive(job["pid"], process)
+
+    returncode = status.get("returncode")
+    if returncode is None and process is not None:
+        returncode = process.poll()
+
+    worker_state = status.get("state")
+    if worker_state in ("done", "failed"):
+        state = worker_state
+    elif worker_state == "running":
+        # Worker said running; if the process is gone without a terminal
+        # status it crashed.
+        state = "running" if alive in (True, None) else "failed"
+    elif alive is True:
+        state = "running"
+    elif alive is False:
+        # Process exited before writing any status — failed unless rc says 0.
+        state = "done" if returncode == 0 else "failed"
+    else:
+        state = "unknown"
+
+    started_ts = job.get("started_ts")
+    elapsed = status.get("elapsed")
+    if elapsed is None and started_ts is not None:
+        elapsed = time.time() - started_ts
+
+    # Prefer freshly resolved outputs from the live node when this is the
+    # interactive session's own ROP; fall back to the worker-reported outputs.
+    outputs = status.get("outputs")
+    if not outputs:
+        node = hou.node(job["rop"])
+        outputs = _resolve_rop_outputs(node) if node is not None else []
+
+    return {
+        "job_id": job_id,
+        "state": state,
+        "returncode": returncode,
+        "elapsed": elapsed,
+        "log_tail": _read_log_tail(job.get("log_file", "")),
+        "outputs": outputs,
+        "error": status.get("error"),
+        "status_file": job["status_file"],
+    }
+
+
+###### rendering.list_render_jobs
+
+def list_render_jobs() -> dict:
+    """List all async render jobs tracked this session with their state.
+
+    Returns:
+        Dict with ``jobs`` (a list of per-job summaries) and ``count``.
+    """
+    jobs = []
+    for job_id, job in _RENDER_JOBS.items():
+        status = _read_status_file(job["status_file"])
+        process = job.get("process")
+        alive = _process_alive(job["pid"], process)
+        worker_state = status.get("state")
+        if worker_state in ("done", "failed"):
+            state = worker_state
+        elif alive is True:
+            state = "running"
+        elif alive is False:
+            state = "done" if status.get("returncode") == 0 else "failed"
+        else:
+            state = worker_state or "unknown"
+        jobs.append(
+            {
+                "job_id": job_id,
+                "state": state,
+                "pid": job["pid"],
+                "rop": job["rop"],
+                "status_file": job["status_file"],
+                "started_ts": job.get("started_ts"),
+            }
+        )
+    return {"jobs": jobs, "count": len(jobs)}
+
+
+###### rendering.cancel_render_job
+
+def cancel_render_job(job_id: str) -> dict:
+    """Terminate a running async render job's process.
+
+    Args:
+        job_id: The id returned by :func:`start_render_job`.
+
+    Returns:
+        Dict with ``job_id``, ``cancelled`` (bool), and a ``message``.
+    """
+    job = _RENDER_JOBS.get(job_id)
+    if job is None:
+        raise ValueError(f"Unknown render job: {job_id}")
+
+    process = job.get("process")
+    if process is None:
+        return {
+            "job_id": job_id,
+            "cancelled": False,
+            "message": "No live process handle; cannot terminate.",
+        }
+
+    if process.poll() is not None:
+        return {
+            "job_id": job_id,
+            "cancelled": False,
+            "message": f"Process already exited (returncode={process.returncode}).",
+        }
+
+    try:
+        process.terminate()
+        try:
+            process.wait(timeout=5)
+        except subprocess.TimeoutExpired:
+            process.kill()
+    except OSError as exc:
+        return {
+            "job_id": job_id,
+            "cancelled": False,
+            "message": f"Could not terminate process: {exc}",
+        }
+
+    return {
+        "job_id": job_id,
+        "cancelled": True,
+        "message": "Render job terminated.",
+    }
+
+
 ###### Registration
 
 register_handler("rendering.render_viewport", render_viewport)
@@ -633,3 +1197,9 @@ register_handler("rendering.create_render_node", create_render_node)
 register_handler("rendering.start_render", start_render)
 register_handler("rendering.render_node_network", render_node_network)
 register_handler("rendering.get_render_progress", get_render_progress)
+register_handler("rendering.render_rop", render_rop)
+register_handler("rendering.list_rop_outputs", list_rop_outputs)
+register_handler("rendering.start_render_job", start_render_job)
+register_handler("rendering.get_render_job", get_render_job)
+register_handler("rendering.list_render_jobs", list_render_jobs)
+register_handler("rendering.cancel_render_job", cancel_render_job)

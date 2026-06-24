@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 # Built-in
-from typing import Any
+from typing import Any, Optional
 
 # Third-party
 from mcp.server.fastmcp import Context
@@ -314,4 +314,119 @@ async def find_nearest_point(
             "position": position,
             "max_results": max_results,
         },
+    )
+
+
+@mcp.tool()
+async def attribute_stats(
+    ctx: Context,
+    node_path: str,
+    attrib_name: str,
+    attrib_class: str = "point",
+    frames: Optional[list[float]] = None,
+    timeout: Optional[float] = None,
+) -> dict:
+    """Per-frame min/max/mean of an attribute across one or more frames.
+
+    Cooks the node at each frame and reports per-component statistics — use it
+    to confirm an animated attribute sweeps the value range you expect. Pass a
+    larger timeout when sampling many frames on a heavy graph.
+
+    Args:
+        node_path: SOP node path.
+        attrib_name: Attribute name.
+        attrib_class: "point", "prim", "vertex", or "detail".
+        frames: Frame numbers to sample; defaults to the current frame.
+        timeout: Bridge timeout in seconds (cooking many frames can exceed
+            the 120s default).
+    """
+    bridge = _get_bridge(ctx)
+    params: dict[str, Any] = {
+        "node_path": node_path,
+        "attrib_name": attrib_name,
+        "attrib_class": attrib_class,
+    }
+    if frames is not None:
+        params["frames"] = frames
+    return await bridge.execute(
+        "geometry.attribute_stats", params, timeout=timeout
+    )
+
+
+@mcp.tool()
+async def compare_frames(
+    ctx: Context,
+    node_path: str,
+    frame_a: float,
+    frame_b: float,
+    attrib_name: str = "P",
+    attrib_class: str = "point",
+    tolerance: float = 1e-6,
+    timeout: Optional[float] = None,
+) -> dict:
+    """Compare an attribute between two frames elementwise.
+
+    Cooks the node at frame_a and frame_b and reports the largest absolute
+    difference. The canonical loop-seam check: e.g. frame 1 vs frame 151 of a
+    150-frame loop should be identical.
+
+    Args:
+        node_path: SOP node path.
+        frame_a: First frame.
+        frame_b: Second frame.
+        attrib_name: Attribute name (default "P").
+        attrib_class: "point", "prim", "vertex", or "detail".
+        tolerance: Max abs diff still treated as identical.
+        timeout: Bridge timeout in seconds (cooking a heavy graph twice can
+            exceed the 120s default).
+    """
+    bridge = _get_bridge(ctx)
+    return await bridge.execute(
+        "geometry.compare_frames",
+        {
+            "node_path": node_path,
+            "frame_a": frame_a,
+            "frame_b": frame_b,
+            "attrib_name": attrib_name,
+            "attrib_class": attrib_class,
+            "tolerance": tolerance,
+        },
+        timeout=timeout,
+    )
+
+
+@mcp.tool()
+async def verify_animation(
+    ctx: Context,
+    node_path: str,
+    frames: Optional[list[float]] = None,
+    attrib_name: str = "P",
+    attrib_class: str = "point",
+    timeout: Optional[float] = None,
+) -> dict:
+    """Check whether an attribute changes over the playback range.
+
+    Samples several frames (the playback range when frames is omitted) and, for
+    each, reports the max absolute difference of the attribute against the first
+    sampled frame. is_animated is True when any frame differs.
+
+    Args:
+        node_path: SOP node path.
+        frames: Frame numbers to sample; defaults to ~5 spread across the
+            playback range.
+        attrib_name: Attribute name (default "P").
+        attrib_class: "point", "prim", "vertex", or "detail".
+        timeout: Bridge timeout in seconds (cooking many frames can exceed
+            the 120s default).
+    """
+    bridge = _get_bridge(ctx)
+    params: dict[str, Any] = {
+        "node_path": node_path,
+        "attrib_name": attrib_name,
+        "attrib_class": attrib_class,
+    }
+    if frames is not None:
+        params["frames"] = frames
+    return await bridge.execute(
+        "geometry.verify_animation", params, timeout=timeout
     )

@@ -172,3 +172,64 @@ async def get_context_info(ctx: Context, context: str) -> dict:
     """
     bridge = _get_bridge(ctx)
     return await bridge.execute("scene.get_context_info", {"context": context})
+
+
+@mcp.tool()
+async def set_fps(ctx: Context, fps: float) -> dict:
+    """Set the scene's frames-per-second rate.
+
+    Args:
+        fps: New frames-per-second value.
+    """
+    bridge = _get_bridge(ctx)
+    return await bridge.execute("scene.set_fps", {"fps": fps})
+
+
+@mcp.tool()
+async def get_fps(ctx: Context) -> dict:
+    """Get the scene's current frames-per-second rate."""
+    bridge = _get_bridge(ctx)
+    return await bridge.execute("scene.get_fps")
+
+
+# NOTE: tools/animation.py already registers MCP tools named set_frame /
+# get_frame / set_frame_range (backed by the animation.* commands). FastMCP
+# keys tools by function name, so these scene variants are exposed under
+# distinct scene_* tool names to avoid clobbering the animation tools, while
+# still routing to the scene.* handlers requested here.
+
+
+@mcp.tool(name="scene_set_frame_range")
+async def scene_set_frame_range(
+    ctx: Context, start: float, end: float, set_playback: bool = True
+) -> dict:
+    """Set the global frame range, optionally syncing the playback range.
+
+    Args:
+        start: First frame of the range.
+        end: Last frame of the range.
+        set_playback: Also set the playback (playbar) range to match.
+    """
+    bridge = _get_bridge(ctx)
+    return await bridge.execute(
+        "scene.set_frame_range",
+        {"start": start, "end": end, "set_playback": set_playback},
+    )
+
+
+@mcp.tool(name="scene_set_frame")
+async def scene_set_frame(ctx: Context, frame: float) -> dict:
+    """Set the current frame (moves the playbar).
+
+    Args:
+        frame: Frame to set as current.
+    """
+    bridge = _get_bridge(ctx)
+    return await bridge.execute("scene.set_frame", {"frame": frame})
+
+
+@mcp.tool(name="scene_get_frame")
+async def scene_get_frame(ctx: Context) -> dict:
+    """Get the current frame."""
+    bridge = _get_bridge(ctx)
+    return await bridge.execute("scene.get_frame")

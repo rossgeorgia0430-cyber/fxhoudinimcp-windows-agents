@@ -143,6 +143,58 @@ async def get_node_info(ctx: Context, node_path: str) -> dict:
 
 
 @mcp.tool()
+async def get_menu_items(ctx: Context, node_path: str, parm_name: str) -> dict:
+    """Get a menu parameter's stored tokens paired with their human labels.
+
+    get_node_card and get_parameter_schema report a menu parameter's stored
+    values (e.g. "0".."3") but not what each one means. Use this to learn
+    which menu index selects which option before setting the parameter.
+    Returns is_menu=False (with no items) if the parameter is not a menu.
+
+    Args:
+        ctx: MCP context.
+        node_path: Node path.
+        parm_name: Parameter name.
+    """
+    bridge = _get_bridge(ctx)
+    return await bridge.execute(
+        "nodes.get_menu_items",
+        {
+            "node_path": node_path,
+            "parm_name": parm_name,
+        },
+    )
+
+
+@mcp.tool()
+async def get_node_messages(
+    ctx: Context,
+    root_path: str = "/",
+    severity: str = "all",
+) -> dict:
+    """Scan a network and report node errors and warnings as separate cohorts.
+
+    Unlike get_node_errors_detailed (which counts warnings as errors), this
+    keeps error_count and warning_count distinct, so warning-only nodes are
+    not reported as false-positive errors. Use `severity` to list only nodes
+    with real errors, only warnings, or both.
+
+    Args:
+        ctx: MCP context.
+        root_path: Root network to scan recursively (default '/').
+        severity: 'error', 'warning', or 'all' (default 'all').
+    """
+    bridge = _get_bridge(ctx)
+    return await bridge.execute(
+        "nodes.get_node_messages",
+        {
+            "root_path": root_path,
+            "severity": severity,
+        },
+    )
+
+
+@mcp.tool()
 async def list_children(
     ctx: Context,
     parent_path: str,

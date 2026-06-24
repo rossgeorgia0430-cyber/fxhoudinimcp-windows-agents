@@ -356,6 +356,65 @@ def get_context_info(context: str) -> dict:
     }
 
 
+###### scene.set_fps
+
+def set_fps(fps: float) -> dict:
+    """Set the scene's frames-per-second rate.
+
+    Args:
+        fps: New frames-per-second value.
+    """
+    hou.setFps(float(fps))
+    return {"fps": hou.fps()}
+
+
+###### scene.get_fps
+
+def get_fps() -> dict:
+    """Return the scene's current frames-per-second rate."""
+    return {"fps": hou.fps()}
+
+
+###### scene.set_frame_range
+
+def set_frame_range(
+    start: float, end: float, set_playback: bool = True
+) -> dict:
+    """Set the global frame range, optionally syncing the playback range.
+
+    Args:
+        start: First frame of the range.
+        end: Last frame of the range.
+        set_playback: If True, also set the playback range to match.
+    """
+    hou.playbar.setFrameRange(start, end)
+    if set_playback:
+        hou.playbar.setPlaybackRange(start, end)
+    return {
+        "frame_range": list(hou.playbar.frameRange()),
+        "playback_range": list(hou.playbar.playbackRange()),
+    }
+
+
+###### scene.set_frame
+
+def set_frame(frame: float) -> dict:
+    """Set the current frame.
+
+    Args:
+        frame: Frame to set as current.
+    """
+    hou.setFrame(float(frame))
+    return {"frame": hou.frame()}
+
+
+###### scene.get_frame
+
+def get_frame() -> dict:
+    """Return the current frame."""
+    return {"frame": hou.frame()}
+
+
 ###### Registration
 
 register_handler("scene.get_scene_info", get_scene_info)
@@ -365,3 +424,8 @@ register_handler("scene.load_scene", load_scene)
 register_handler("scene.import_file", import_file)
 register_handler("scene.export_file", export_file)
 register_handler("scene.get_context_info", get_context_info)
+register_handler("scene.set_fps", set_fps)
+register_handler("scene.get_fps", get_fps)
+register_handler("scene.set_frame_range", set_frame_range)
+register_handler("scene.set_frame", set_frame)
+register_handler("scene.get_frame", get_frame)

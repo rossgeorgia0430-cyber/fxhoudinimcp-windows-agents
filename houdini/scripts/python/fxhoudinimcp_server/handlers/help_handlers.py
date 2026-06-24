@@ -212,3 +212,77 @@ def get_help_page(path: str, **_: Any) -> dict:
 
 
 register_handler("help.get_help_page", get_help_page)
+
+
+###### help.get_hda_help
+
+_HELP_CATEGORIES = {
+    "Sop": hou.sopNodeTypeCategory,
+    "Object": hou.objNodeTypeCategory,
+    "Driver": hou.ropNodeTypeCategory,
+    "Lop": hou.lopNodeTypeCategory,
+    "Dop": hou.dopNodeTypeCategory,
+    "Cop2": hou.cop2NodeTypeCategory,
+    "Vop": hou.vopNodeTypeCategory,
+    "Chop": hou.chopNodeTypeCategory,
+    "Top": hou.topNodeTypeCategory,
+}
+
+
+def get_hda_help(
+    node_type: str,
+    context: str = "Sop",
+    **_: Any,
+) -> dict:
+    """Pull help straight off an installed node/HDA definition.
+
+    Works for third-party HDAs (SideFX Labs, studio tools) that the shipped
+    documentation archives never cover. Many such HDAs ship an empty
+    ``embeddedHelp`` — in that case the type ``description`` and per-parameter
+    help strings (``parm_help``) are usually the only documentation there is,
+    so they are returned regardless.
+
+    Args:
+        node_type: Node type name, e.g. "labs::mountain" or "scatter".
+        context: Category of the type — Sop, Object, Driver, Lop, Dop,
+            Cop2, Vop, Chop, or Top. Default: Sop.
+    """
+    category_fn = _HELP_CATEGORIES.get(context)
+    if category_fn is None:
+        raise ValueError(
+            f"Unknown context '{context}'. "
+            f"Available: {sorted(_HELP_CATEGORIES)}"
+        )
+
+    cat = category_fn()
+    nt = hou.nodeType(cat, node_type)
+    if nt is None:
+        raise ValueError(
+            f"No node type '{node_type}' in context '{context}'."
+        )
+
+    # Collect per-parameter help, recursing into folder templates.
+    parm_help: dict[str, str] = {}
+
+    def _walk(entries: tuple) -> None:
+        for entry in entries:
+            try:
+                help_text = entry.help()
+            except Exception:
+                help_text = ""
+            if help_text:
+                parm_help[entry.name()] = help_text
+            if isinstance(entry, hou.FolderParmTemplate):
+                _walk(entry.parmTemplates())
+
+    _walk(nt.parmTemplateGroup().entries())
+
+    return {
+        "node_type": nt.name(),
+        "description": nt.description(),
+        "embedded_help": nt.embeddedHelp() or "",
+        "parm_help": parm_help,
+    }
+
+
+register_handler("help.get_hda_help", get_hda_help)
