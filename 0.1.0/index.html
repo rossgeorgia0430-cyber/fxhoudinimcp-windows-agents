@@ -1704,6 +1704,34 @@
   
   
     <li class="md-nav__item">
+      <a href="technical/tools/image/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    image
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="technical/tools/lops/" class="md-nav__link">
         
   
@@ -2161,7 +2189,7 @@
 <h1 id="home"><span class="twemoji scale-in-center"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg></span> Home<a class="headerlink" href="#home" title="Permanent link">&para;</a></h1>
 <h2 id="fxhoudinimcp">fxhoudinimcp<a class="headerlink" href="#fxhoudinimcp" title="Permanent link">&para;</a></h2>
 <p>The most comprehensive <a href="https://modelcontextprotocol.io/">MCP</a> (Model Context Protocol) server for <a href="https://www.sidefx.com/">SideFX Houdini</a>.</p>
-<p><strong>180 tools</strong>, <strong>8 resources</strong>, and <strong>6 workflow prompts</strong> out of the box.</p>
+<p><strong>201 tools</strong>, <strong>8 resources</strong>, and <strong>6 workflow prompts</strong> out of the box.</p>
 <p>Connects AI assistants like Claude directly to Houdini's Python API, enabling natural language control over scene building, simulation setup, rendering, and more.</p>
 <h2 id="features">Features<a class="headerlink" href="#features" title="Permanent link">&para;</a></h2>
 <table>
@@ -2296,7 +2324,7 @@
 
     subgraph MCP[" ⚡ FXHoudini MCP Server "]
         direction TB
-        B1("🔧 180 tools")
+        B1("🔧 201 tools")
         B2("📦 8 Resources")
         B3("💬 6 Prompts")
     end
@@ -2326,7 +2354,7 @@
 <p><strong>Houdini Plugin</strong> (<code>houdini/</code>): Runs inside Houdini's Python environment. Registers <code>@hwebserver.apiFunction</code> endpoints that receive JSON commands. Uses <code>hdefereval.executeInMainThreadWithResult()</code> to safely execute <code>hou.*</code> calls on the main thread.</p>
 </li>
 <li>
-<p><strong>MCP Server</strong> (<code>python/fxhoudinimcp/</code>): A standalone Python process using FastMCP. Exposes 180 tools, 8 resources, and 6 prompts via the MCP protocol. Forwards tool calls to Houdini over HTTP.</p>
+<p><strong>MCP Server</strong> (<code>python/fxhoudinimcp/</code>): A standalone Python process using FastMCP. Exposes 201 tools, 8 resources, and 6 prompts via the MCP protocol. Forwards tool calls to Houdini over HTTP.</p>
 </li>
 <li>
 <p><strong>Bridge</strong> (<code>python/fxhoudinimcp/bridge.py</code>): Async HTTP client that sends commands to Houdini's hwebserver and deserializes responses. Handles connection errors and timeouts.</p>
@@ -2354,7 +2382,7 @@
     <span class="md-icon" title="Last update">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"/></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="June 22, 2026 03:39:27 UTC">June 22, 2026</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="June 24, 2026 07:27:10 UTC">June 24, 2026</span>
   </span>
 
     
@@ -2380,6 +2408,7 @@
     <nav>
       
         <a href="mailto:57375180+healkeiser@users.noreply.github.com">Valentin Beaumont</a>, 
+        <a href="mailto:rossgeorgia0430-cyber@users.noreply.github.com">wusifan</a>, 
         <a href="mailto:rossgeorgia0430@gmail.com">wusifan</a>
     </nav>
   </span>
