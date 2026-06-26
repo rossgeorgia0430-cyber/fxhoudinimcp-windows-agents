@@ -806,6 +806,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#vat-4-tools" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        VAT (4 tools)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#vex-5-tools" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2198,6 +2209,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../../technical/tools/vat/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    vat
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../technical/tools/vex/" class="md-nav__link">
         
   
@@ -2529,6 +2568,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#vat-4-tools" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        VAT (4 tools)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#vex-5-tools" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2707,7 +2757,7 @@
 
 <h1 id="tools"><span class="twemoji scale-in-center"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m22.7 19-9.1-9.1c.9-2.3.4-5-1.5-6.9-2-2-5-2.4-7.4-1.3L9 6 6 9 1.6 4.7C.4 7.1.9 10.1 2.9 12.1c1.9 1.9 4.6 2.4 6.9 1.5l9.1 9.1c.4.4 1 .4 1.4 0l2.3-2.3c.5-.4.5-1.1.1-1.4"/></svg></span> Tools<a class="headerlink" href="#tools" title="Permanent link">&para;</a></h1>
 <h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">&para;</a></h2>
-<p>fxhoudinimcp exposes <strong>201 tools</strong> across <strong>23 categories</strong>, covering every major Houdini context.</p>
+<p>fxhoudinimcp exposes <strong>205 tools</strong> across <strong>24 categories</strong>, covering every major Houdini context.</p>
 <blockquote>
 <p><strong>Recently extended (+21 tools).</strong> New <strong>Image</strong> category — <code>inspect_image</code>,
 <code>sample_image</code>, <code>image_region_stats</code> (EXR/texture inspection via
@@ -2716,6 +2766,11 @@ bake) &amp; <code>list_rop_outputs</code> &amp; async <code>start_render_job</co
 <code>attribute_stats</code>/<code>compare_frames</code>/<code>verify_animation</code> (per-frame geometry
 checks); <code>set_fps</code>/<code>scene_set_frame*</code>/<code>press_button</code>;
 <code>get_menu_items</code>/<code>get_hda_help</code>/<code>get_node_messages</code>.</p>
+<p><strong>Also new (+4 VAT tools).</strong> New <strong>VAT</strong> category for the SideFX Labs
+VAT → UE workflow — <code>bake_attribute_to_spatial_atlas</code> &amp;
+<code>reshape_to_spatial_atlas</code> (spatial flipbook normal/height atlases),
+<code>get_vat_layout</code> (texture-layout introspection), and <code>sample_vertex</code>
+(per-vertex frozen-vs-animated check).</p>
 </blockquote>
 <p>Once connected, your AI assistant can:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>&quot;Create a procedural rock generator with mountain displacement&quot;
@@ -2784,6 +2839,14 @@ reports dimensions, channels, and per-channel statistics; <code>sample_image</co
 reads exact pixel values at a coordinate; <code>image_region_stats</code> aggregates a
 sub-region. Built on OpenImageIO (ships with Houdini) — ideal for verifying
 baked VAT position/color textures.</p>
+<h3 id="vat-4-tools">VAT (4 tools)<a class="headerlink" href="#vat-4-tools" title="Permanent link">&para;</a></h3>
+<p>SideFX Labs VAT → UE helpers. <code>bake_attribute_to_spatial_atlas</code> cooks a point
+attribute over a frame range into a spatial flipbook atlas EXR (the recommended
+way to make a UE normal/height atlas, bypassing the vertex-index VAT layout);
+<code>reshape_to_spatial_atlas</code> reshapes an already-baked vertex-index VAT EXR into
+that spatial atlas; <code>get_vat_layout</code> introspects a VAT ROP's texture layout and
+vertex-index↔texel mapping; <code>sample_vertex</code> reads one vertex's VAT texel across
+frames to report whether a channel is frozen or animated.</p>
 <h3 id="vex-5-tools">VEX (5 tools)<a class="headerlink" href="#vex-5-tools" title="Permanent link">&para;</a></h3>
 <p>Create/edit wrangle nodes and validate VEX code.</p>
 <h3 id="code-execution-4-tools">Code Execution (4 tools)<a class="headerlink" href="#code-execution-4-tools" title="Permanent link">&para;</a></h3>
@@ -2824,7 +2887,7 @@ baked VAT position/color textures.</p>
     <span class="md-icon" title="Last update">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"/></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="June 24, 2026 07:27:10 UTC">June 24, 2026</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="June 26, 2026 14:27:47 UTC">June 26, 2026</span>
   </span>
 
     
