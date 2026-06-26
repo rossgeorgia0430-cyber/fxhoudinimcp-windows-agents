@@ -59,6 +59,7 @@ from fxhoudinimcp.tools import chops  # noqa: F401
 from fxhoudinimcp.tools import cache  # noqa: F401
 from fxhoudinimcp.tools import takes  # noqa: F401
 from fxhoudinimcp.tools import image  # noqa: F401
+from fxhoudinimcp.tools import vat  # noqa: F401
 
 # Filter the real FastMCP registry only after every decorator has registered
 # its wrapper.  This keeps the full wrapper/handler contract auditable while

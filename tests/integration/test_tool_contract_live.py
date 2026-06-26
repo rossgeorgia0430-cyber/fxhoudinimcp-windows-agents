@@ -53,5 +53,5 @@ def _wrapper_commands() -> set[str]:
 def test_all_mcp_wrapper_commands_are_live_registered_handlers():
     wrapped = _wrapper_commands()
     registered = set(dispatcher.list_commands())
-    assert len(wrapped) == 200
+    assert len(wrapped) == 204
     assert wrapped == registered

@@ -39,6 +39,7 @@ _HANDLER_MODULES = [
     "cache_handlers",
     "take_handlers",
     "image_handlers",
+    "vat_handlers",
 ]
 
 _loaded = []

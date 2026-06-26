@@ -2,7 +2,7 @@
 
 ## Overview
 
-fxhoudinimcp exposes **201 tools** across **23 categories**, covering every major Houdini context.
+fxhoudinimcp exposes **205 tools** across **24 categories**, covering every major Houdini context.
 
 > **Recently extended (+21 tools).** New **Image** category — `inspect_image`,
 > `sample_image`, `image_region_stats` (EXR/texture inspection via
@@ -11,6 +11,12 @@ fxhoudinimcp exposes **201 tools** across **23 categories**, covering every majo
 > `attribute_stats`/`compare_frames`/`verify_animation` (per-frame geometry
 > checks); `set_fps`/`scene_set_frame*`/`press_button`;
 > `get_menu_items`/`get_hda_help`/`get_node_messages`.
+
+> **Also new (+4 VAT tools).** New **VAT** category for the SideFX Labs
+> VAT → UE workflow — `bake_attribute_to_spatial_atlas` &
+> `reshape_to_spatial_atlas` (spatial flipbook normal/height atlases),
+> `get_vat_layout` (texture-layout introspection), and `sample_vertex`
+> (per-vertex frozen-vs-animated check).
 
 Once connected, your AI assistant can:
 
@@ -110,6 +116,16 @@ reports dimensions, channels, and per-channel statistics; `sample_image`
 reads exact pixel values at a coordinate; `image_region_stats` aggregates a
 sub-region. Built on OpenImageIO (ships with Houdini) — ideal for verifying
 baked VAT position/color textures.
+
+### VAT (4 tools)
+
+SideFX Labs VAT → UE helpers. `bake_attribute_to_spatial_atlas` cooks a point
+attribute over a frame range into a spatial flipbook atlas EXR (the recommended
+way to make a UE normal/height atlas, bypassing the vertex-index VAT layout);
+`reshape_to_spatial_atlas` reshapes an already-baked vertex-index VAT EXR into
+that spatial atlas; `get_vat_layout` introspects a VAT ROP's texture layout and
+vertex-index↔texel mapping; `sample_vertex` reads one vertex's VAT texel across
+frames to report whether a channel is frozen or animated.
 
 ### VEX (5 tools)
 
