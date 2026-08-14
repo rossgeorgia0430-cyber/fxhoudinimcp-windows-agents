@@ -14,7 +14,7 @@
       "env": {
         "HOUDINI_HOST": "127.0.0.1",
         "HOUDINI_PORT": "18100",
-        "FXHOUDINIMCP_TOOL_PROFILE": "core"
+        "FXHOUDINIMCP_TOOL_PROFILE": "full"
       }
     }
   }

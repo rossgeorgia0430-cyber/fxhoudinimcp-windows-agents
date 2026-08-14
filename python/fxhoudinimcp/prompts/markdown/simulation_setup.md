@@ -25,7 +25,7 @@ Houdini ships workflow tools (setup_pyro_sim, setup_rbd_sim, setup_flip_sim, set
 
 | Sim type | Objects | Solver | Key extras |
 |----------|---------|--------|------------|
-| Pyro | smokeobject, smokeobject_sparse | pyrosolver, pyrosolver_sparse | volumesource, gasresizefield, gasturbulence, gasdisturb |
+| Pyro | smokeobject_sparse (recommended), smokeobject (H22 已弃用、即将删除) | pyrosolver_sparse (recommended), pyrosolver / pyrosolver::2.0 (H22 已弃用、即将删除) | volumesource, gasresizefield, gasturbulence, gasdisturb |
 | FLIP | flipobject | flipsolver | flipconfigureobject, volumesource |
 | RBD | rbdpackedobject, rbdobject | bulletsolver, rbdsolver | constraintnetwork, staticobject, groundplane |
 | Vellum | vellumobject | vellumsolver | vellumsource, vellumconstraints, vellumconstraintproperty |
@@ -53,7 +53,7 @@ Houdini ships workflow tools (setup_pyro_sim, setup_rbd_sim, setup_flip_sim, set
 2. Build source geometry in SOPs using node chains (Box, Sphere, Grid, Scatter, etc.).
 3. Use the appropriate workflow tool (setup_pyro_sim, setup_rbd_sim, setup_flip_sim, setup_vellum_sim) for common sim types.
 4. If no workflow tool fits, create a DOP network manually:
-   - Create objects (smokeobject, flipobject, rbdpackedobject, etc.)
+   - Create objects (smokeobject_sparse, flipobject, rbdpackedobject, etc.)
    - Add the appropriate solver
    - Wire source geometry via Volume Source or SOP Geometry
 5. Use get_simulation_info to check the simulation state.

@@ -101,7 +101,7 @@ Houdini version directory:
 
 ```powershell
 .\scripts\windows\install-houdini-package.ps1 `
-  -HoudiniVersion 21.0 `
+  -HoudiniVersion 22.0 `
   -DocumentsPath "<redirected-documents>"
 ```
 
@@ -110,7 +110,7 @@ For a fully custom preferences location, pass the exact
 
 ```powershell
 .\scripts\windows\install-houdini-package.ps1 `
-  -HoudiniVersion 21.0 `
+  -HoudiniVersion 22.0 `
   -HoudiniPreferencesRoot "<houdini-preferences-root>"
 ```
 

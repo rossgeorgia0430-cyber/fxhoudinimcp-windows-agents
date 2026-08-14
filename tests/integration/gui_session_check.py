@@ -157,15 +157,15 @@ async def main() -> int:
         )
         inspect_visual("network", network_png)
 
-        ###### OpenGL viewport render
-        flip_png = str(out_dir / "opengl.$F4.png").replace("\\", "/")
+        ###### Viewport flipbook/screenshot (H22 viewport is Vulkan, not GL)
+        flip_png = str(out_dir / "viewport_flip.$F4.png").replace("\\", "/")
         await call(
             "rendering.render_viewport", output_path=flip_png, resolution=[320, 240]
         )
-        written = list(out_dir.glob("opengl.*.png"))
+        written = list(out_dir.glob("viewport_flip.*.png"))
         if not written:
             raise AssertionError("render_viewport claimed success, no image written")
-        inspect_visual("opengl", str(written[0]))
+        inspect_visual("viewport_flip", str(written[0]))
 
         ###### Runtime auto-layout toggle (v1.1.0 feature) in a live session
         await call(

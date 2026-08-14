@@ -67,7 +67,8 @@ def _copernicus_image_info(node: hou.Node) -> tuple[list[int] | None, list[dict]
     Returns (resolution [w, h] or None, per-layer detail list, error or None).
     Houdini 21 Copernicus nodes have no xRes()/planes() — image data is read
     from node.layer(output_index), each an ImageLayer with bufferResolution(),
-    channelCount() and storageType().
+    channelCount() and storageType(). H22 adds ImageLayer.computeMin/Max/
+    Average(); those stats are attached when the methods exist.
     """
     try:
         names = list(node.outputNames())
@@ -88,15 +89,22 @@ def _copernicus_image_info(node: hou.Node) -> tuple[list[int] | None, list[dict]
             wh = [int(res[0]), int(res[1])]
             if resolution is None:
                 resolution = wh
-            layers.append(
-                {
-                    "name": name,
-                    "output_index": index,
-                    "resolution": wh,
-                    "channels": int(layer.channelCount()),
-                    "storage": str(layer.storageType()).rsplit(".", 1)[-1],
-                }
-            )
+            layer_info = {
+                "name": name,
+                "output_index": index,
+                "resolution": wh,
+                "channels": int(layer.channelCount()),
+                "storage": str(layer.storageType()).rsplit(".", 1)[-1],
+            }
+            for stat_name in ("computeMin", "computeMax", "computeAverage"):
+                if hasattr(layer, stat_name):
+                    try:
+                        layer_info[stat_name.replace("compute", "").lower()] = (
+                            getattr(layer, stat_name)()
+                        )
+                    except Exception:
+                        pass
+            layers.append(layer_info)
         except Exception as e:  # noqa: BLE001 - per-layer, keep going
             layers.append(
                 {"name": name, "output_index": index, "error": f"{type(e).__name__}: {e}"}
@@ -486,8 +494,14 @@ def get_cop_vdb(node_path: str, output_index: int = 0) -> dict:
     # Look for VDB primitives
     vdb_prims = []
     try:
+        nanovdb_type = getattr(hou.primType, "NanoVDB", None) if hasattr(hou, "primType") else None
         for prim in geo.prims():
-            if prim.type() == hou.primType.VDB:
+            is_vdb = prim.type() == hou.primType.VDB
+            if not is_vdb and nanovdb_type is not None:
+                is_vdb = prim.type() == nanovdb_type
+            if not is_vdb and hasattr(hou, "NanoVDB"):
+                is_vdb = isinstance(prim, hou.NanoVDB)
+            if is_vdb:
                 vdb_info = {
                     "name": prim.attribValue("name") if prim.attribValue("name") else f"vdb_{prim.number()}",
                     "prim_index": prim.number(),
@@ -522,6 +536,25 @@ def get_cop_vdb(node_path: str, output_index: int = 0) -> dict:
                 except (hou.OperationFailed, AttributeError) as e:
                     logger.debug("Could not read VDB transform: %s", e)
                     vdb_info["transform"] = None
+
+                # H22 NanoVDB / Volume fast stats (absent on 20.5/21).
+                for stat_name, key in (
+                    ("computeMin", "min"),
+                    ("computeMax", "max"),
+                    ("computeAverage", "average"),
+                    ("resolution", "resolution"),
+                ):
+                    if hasattr(prim, stat_name):
+                        try:
+                            value = getattr(prim, stat_name)()
+                            if key == "resolution":
+                                try:
+                                    value = list(value)
+                                except TypeError:
+                                    pass
+                            vdb_info[key] = value
+                        except Exception:
+                            pass
 
                 vdb_prims.append(vdb_info)
     except Exception as e:

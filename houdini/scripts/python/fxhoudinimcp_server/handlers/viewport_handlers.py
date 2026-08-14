@@ -249,8 +249,13 @@ def set_viewport_camera(
 ) -> dict:
     """Set the viewport to look through a specific camera.
 
+    H22 allows look-through of SOP (`sop/camera`, `sop/camerafrompoints`)
+    and COP cameras as well as object cameras. This path calls
+    ``viewport.setCamera`` only — it does not use the camera-menu
+    "Save View" action (removed in H22).
+
     Args:
-        camera_path: Path to the camera node (e.g. '/obj/cam1').
+        camera_path: Path to the camera node (e.g. '/obj/cam1' or a SOP camera).
         pane_name: Optional pane tab name.
     """
     cam_node = hou.node(camera_path)
@@ -368,11 +373,12 @@ def set_viewport_renderer(
     """Set the viewport's Hydra rendering delegate.
 
     In LOPs/Solaris the viewport can render through different Hydra delegates
-    (GL, Storm, Karma CPU, Karma XPU, etc.) without writing to disk.
+    (Houdini VK on H22, Storm, Karma CPU, Karma XPU; pre-22 also Houdini GL)
+    without writing to disk. Houdini 22 removed the OpenGL viewport.
 
     Args:
-        renderer: Renderer name — e.g. "GL", "Storm", "Karma CPU",
-            "Karma XPU", "Houdini GL". Case-insensitive partial match.
+        renderer: Renderer name — e.g. "Houdini VK", "Storm", "Karma CPU",
+            "Karma XPU", "Houdini GL" (pre-22). Case-insensitive partial match.
         pane_name: Optional pane tab name.
     """
     scene_viewer = _find_scene_viewer(pane_name)
@@ -409,6 +415,14 @@ def set_viewport_renderer(
         try:
             if hasattr(scene_viewer, "availableRenderers"):
                 available = list(scene_viewer.availableRenderers())
+        except Exception:
+            pass
+
+    # Method 4: H22 SceneViewer Hydra API (OpenGL viewport is gone)
+    if not available:
+        try:
+            if hasattr(scene_viewer, "hydraRenderers"):
+                available = list(scene_viewer.hydraRenderers())
         except Exception:
             pass
 
@@ -455,6 +469,14 @@ def set_viewport_renderer(
         try:
             if hasattr(scene_viewer, "setRenderer"):
                 scene_viewer.setRenderer(matched_name)
+                applied = True
+        except Exception:
+            pass
+
+    if not applied:
+        try:
+            if hasattr(scene_viewer, "setHydraRenderer"):
+                scene_viewer.setHydraRenderer(matched_name)
                 applied = True
         except Exception:
             pass
@@ -734,6 +756,111 @@ def find_error_nodes(root_path: str = "/") -> dict:
     }
 
 
+###### viewport.flipbook
+
+def flipbook(
+    output_path: str = None,
+    start_frame: float = None,
+    end_frame: float = None,
+    camera_path: str = None,
+    resolution: list = None,
+    frame_increment: int = 1,
+    open_in_mplay: bool = None,
+    pane_name: str = None,
+) -> dict:
+    """Record a viewport flipbook (playblast) over a frame range.
+
+    Cooks every frame once and plays it back at speed — the practical fix for
+    a scene too heavy to scrub live in the viewport. With no ``output_path``
+    the flipbook is streamed to MPlay (in-memory, fastest); provide an
+    ``output_path`` to also write it to disk (use a ``$F4`` frame token for an
+    image sequence, or a ``.mp4`` extension for a video file).
+
+    Unlike ``capture_screenshot`` (a single frame), this records a whole range,
+    so it does NOT return image bytes — only metadata about what was written.
+
+    Args:
+        output_path: Destination path. Empty/omitted → MPlay only. Image
+            sequences need a frame token (e.g. ".../preview.$F4.jpg"); a
+            ".../preview.mp4" path writes a video file.
+        start_frame: First frame. Defaults to the playbar start.
+        end_frame: Last frame. Defaults to the playbar end.
+        camera_path: Object path of a camera to look through first (e.g.
+            "/obj/cam1") for true shot framing. Omitted → current viewport view.
+        resolution: [width, height] in pixels. Omitted → current viewport size.
+        frame_increment: Frame step; >1 skips frames for a faster rough preview.
+        open_in_mplay: Force MPlay on/off. Defaults to True when output_path is
+            empty, False when it is set.
+        pane_name: Scene Viewer pane tab to capture. Omitted → first found.
+    """
+    scene_viewer = _find_scene_viewer(pane_name)
+    viewport = scene_viewer.curViewport()
+
+    # Optional camera lock for real shot framing.
+    if camera_path:
+        camera = hou.node(camera_path)
+        if camera is None:
+            raise ValueError(f"Camera node not found: {camera_path}")
+        viewport.setCamera(camera)
+
+    # Frame range defaults to the global playbar range.
+    global_range = hou.playbar.frameRange()
+    f0 = float(start_frame) if start_frame is not None else float(global_range[0])
+    f1 = float(end_frame) if end_frame is not None else float(global_range[1])
+    if f1 < f0:
+        f0, f1 = f1, f0
+    inc = max(1, int(frame_increment))
+
+    settings = scene_viewer.flipbookSettings().stash()
+    settings.frameRange((f0, f1))
+    settings.frameIncrement(inc)
+
+    res_used = None
+    if resolution is not None:
+        if len(resolution) != 2:
+            raise ValueError(
+                f"resolution must be [width, height], got {resolution!r}"
+            )
+        width, height = int(resolution[0]), int(resolution[1])
+        if width < 1 or height < 1:
+            raise ValueError(
+                f"resolution values must be positive, got {resolution!r}"
+            )
+        settings.useResolution(True)
+        settings.resolution((width, height))
+        res_used = [width, height]
+
+    to_mplay = open_in_mplay if open_in_mplay is not None else (not output_path)
+    resolved_output = ""
+    if output_path:
+        resolved_output = hou.expandString(output_path)
+        out_dir = os.path.dirname(resolved_output)
+        if out_dir and not os.path.isdir(out_dir):
+            os.makedirs(out_dir, exist_ok=True)
+        settings.output(resolved_output)
+        settings.outputToMPlay(bool(to_mplay))
+    else:
+        settings.output("")
+        settings.outputToMPlay(True)
+        to_mplay = True
+
+    scene_viewer.flipbook(viewport, settings)
+
+    return {
+        "success": True,
+        "pane_name": scene_viewer.name(),
+        "viewport_name": viewport.name(),
+        "start_frame": f0,
+        "end_frame": f1,
+        "frame_increment": inc,
+        "resolution": res_used,
+        "camera_path": camera_path,
+        "output_path": resolved_output or None,
+        "to_mplay": bool(to_mplay),
+        "destination": "mplay" if not output_path else resolved_output,
+    }
+
+
 ###### Helpers
 
 def _find_scene_viewer(pane_name: str = None):
@@ -826,6 +953,7 @@ register_handler("viewport.frame_selection", frame_selection)
 register_handler("viewport.frame_all", frame_all)
 register_handler("viewport.capture_screenshot", capture_screenshot)
 register_handler("viewport.capture_network_editor", capture_network_editor)
+register_handler("viewport.flipbook", flipbook)
 register_handler("viewport.set_current_network", set_current_network)
 register_handler("viewport.find_error_nodes", find_error_nodes)
 register_handler("viewport.log_status", log_status)

@@ -131,7 +131,27 @@ try {
     $env:HOUDINI_PORT = "$Port"
     $env:FXHOUDINIMCP_AUTOSTART = '1'
 
-    $gui = Start-Process -FilePath $houdini -WindowStyle Hidden -PassThru
+    # cmd `set` + `start` passes isolation env to H22's GUI stub. See
+    # start-houdini-fork.ps1 for why Start-Process / UseShellExecute=false
+    # both fail on 22.0.368.
+    $houdiniDir = Split-Path -Parent $houdini
+    $cmdLine = @(
+        "set `"HOUDINI_USER_PREF_DIR=$($env:HOUDINI_USER_PREF_DIR)`"",
+        "set `"HOUDINI_PATH=$($env:HOUDINI_PATH)`"",
+        "set `"FXHOUDINIMCP_PORT=$($env:FXHOUDINIMCP_PORT)`"",
+        "set `"HOUDINI_PORT=$($env:HOUDINI_PORT)`"",
+        "set `"FXHOUDINIMCP_AUTOSTART=$($env:FXHOUDINIMCP_AUTOSTART)`"",
+        "cd /d `"$houdiniDir`"",
+        "start /min `"`" `"$houdini`""
+    ) -join ' && '
+    $null = Start-Process -FilePath 'cmd.exe' -ArgumentList @('/c', $cmdLine) -WindowStyle Hidden
+    Start-Sleep -Milliseconds 800
+    $gui = Get-Process -Name houdini -ErrorAction SilentlyContinue |
+        Sort-Object StartTime -Descending |
+        Select-Object -First 1
+    if ($null -eq $gui) {
+        throw 'Houdini GUI process did not start.'
+    }
     try {
         $deadline = (Get-Date).AddSeconds(150)
         do {

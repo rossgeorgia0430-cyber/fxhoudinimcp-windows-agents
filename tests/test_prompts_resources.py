@@ -14,7 +14,11 @@ import pytest
 
 # Internal
 from fxhoudinimcp.prompts.workflows import (
+    cinematic_rbd_fracture_pipeline,
+    cop_heightfield_terrain,
+    cop_pyro_pipeline,
     debug_scene,
+    golden_fluid_pipeline,
     hda_development,
     pdg_pipeline,
     procedural_modeling_workflow,
@@ -45,8 +49,23 @@ class TestPromptTemplates:
             (lambda: pdg_pipeline("wedge 10 variants"), "wedge 10 variants"),
             (lambda: hda_development("a rock generator"), "rock generator"),
             (lambda: debug_scene("slow cooking"), "slow cooking"),
+            (lambda: golden_fluid_pipeline(), "curve-guided"),
+            (lambda: cinematic_rbd_fracture_pipeline(), "packed RBD"),
+            (lambda: cop_pyro_pipeline(), "Pyro Block"),
+            (lambda: cop_heightfield_terrain(), "heightfield_erode"),
         ],
-        ids=["procedural", "usd", "simulation", "pdg", "hda", "debug"],
+        ids=[
+            "procedural",
+            "usd",
+            "simulation",
+            "pdg",
+            "hda",
+            "debug",
+            "goldenfluid",
+            "cinematic-rbd-fracture",
+            "cop-pyro",
+            "cop-heightfield",
+        ],
     )
     def test_prompt_renders_completely(self, render, marker):
         text = render()
@@ -58,6 +77,22 @@ class TestPromptTemplates:
         text = procedural_modeling_workflow("anything")
         assert "log_status" in text
         assert "{network_housekeeping}" not in text
+
+    def test_cop_pyro_prompt_keeps_license_and_templates(self):
+        text = cop_pyro_pipeline()
+        assert "DOP-level" in text
+        assert "Houdini Core" in text
+        assert "Pyro Configure Fire" in text
+        assert "bake_attribute_to_spatial_atlas" in text
+
+    def test_cinematic_rbd_prompt_keeps_delivery_invariants(self):
+        text = cinematic_rbd_fracture_pipeline()
+        assert "If `pscale` or `scale` attributes exist" in text
+        assert "edge incidence and connected components" in text
+        assert "compare flattened element arrays" in text
+        assert "fbx_material_name" in text
+        assert "kinefx::fbxcharacterimport" in text
+        assert "real tail frames" in text
 
 
 class TestResources:

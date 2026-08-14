@@ -240,8 +240,10 @@ def _setup_pyro_sim_dop(
 ) -> dict:
     """Build a DOP-level Pyro simulation (fallback for older Houdini).
 
-    Uses a DOP Network with smokeobject, sourcevolume, pyrosolver,
-    and gasresizefluiddynamic.
+    Prefers the sparse DOP types (``smokeobject_sparse`` +
+    ``pyrosolver_sparse``). Houdini 22 deprecates the dense
+    ``smokeobject`` / ``pyrosolver`` family and plans to remove them.
+    Sparse types exist since H18, so this is safe on 20.5/21.
 
     Args:
         geo: Parent geometry node.
@@ -255,12 +257,23 @@ def _setup_pyro_sim_dop(
     all_nodes.append(dopnet.path())
     _set_parm_safe(dopnet, "substep", substeps)
 
-    # -- Smoke Object
-    print("[workflow] Creating smokeobject DOP")
-    try:
-        smokeobj = dopnet.createNode("smokeobject", "smokeobject1")
-    except hou.OperationFailed:
-        smokeobj = dopnet.createNode("smokeconfigureobject", "smokeobject1")
+    # -- Smoke Object (sparse first; dense types are H22-deprecated)
+    print("[workflow] Creating smokeobject_sparse DOP")
+    smokeobj = None
+    smoke_errors: list[str] = []
+    for smoke_type in ("smokeobject_sparse", "smokeobject", "smokeconfigureobject"):
+        try:
+            smokeobj = dopnet.createNode(smoke_type, "smokeobject1")
+            print(f"[workflow] Created smoke object type '{smoke_type}'")
+            break
+        except hou.OperationFailed as exc:
+            smoke_errors.append(f"{smoke_type}: {exc}")
+    if smokeobj is None:
+        raise hou.OperationFailed(
+            "Could not create a smoke object DOP. Tried "
+            "smokeobject_sparse, smokeobject, smokeconfigureobject. "
+            + "; ".join(smoke_errors)
+        )
     all_nodes.append(smokeobj.path())
 
     # -- Source Volume
@@ -280,22 +293,38 @@ def _setup_pyro_sim_dop(
     except hou.OperationFailed:
         print("[workflow] Warning: sourcevolume not available, skipping")
 
-    # -- Pyro Solver
-    print("[workflow] Creating pyrosolver DOP")
-    try:
-        pyrosolver = dopnet.createNode("pyrosolver::2.0", "pyrosolver1")
-    except hou.OperationFailed:
-        pyrosolver = dopnet.createNode("pyrosolver", "pyrosolver1")
+    # -- Pyro Solver (sparse first; dense pyrosolver is H22-deprecated)
+    print("[workflow] Creating pyrosolver_sparse DOP")
+    pyrosolver = None
+    solver_errors: list[str] = []
+    for solver_type in ("pyrosolver_sparse", "pyrosolver::2.0", "pyrosolver"):
+        try:
+            pyrosolver = dopnet.createNode(solver_type, "pyrosolver1")
+            print(f"[workflow] Created pyro solver type '{solver_type}'")
+            break
+        except hou.OperationFailed as exc:
+            solver_errors.append(f"{solver_type}: {exc}")
+    if pyrosolver is None:
+        raise hou.OperationFailed(
+            "Could not create a pyro solver DOP. Tried "
+            "pyrosolver_sparse, pyrosolver::2.0, pyrosolver. "
+            + "; ".join(solver_errors)
+        )
     all_nodes.append(pyrosolver.path())
 
-    # -- Resize Container
-    print("[workflow] Creating resize container DOP")
+    # -- Resize Container (dense solvers only). Sparse pyro objects already
+    # clamp/resize via clampsize/maxsize; gasresizefluiddynamic cannot take
+    # pyrosolver_sparse as an input (H22: "Invalid input").
     resize = None
-    try:
-        resize = dopnet.createNode("gasresizefluiddynamic", "resize_container1")
-        all_nodes.append(resize.path())
-    except hou.OperationFailed:
-        print("[workflow] Warning: gasresizefluiddynamic not available, skipping")
+    if pyrosolver.type().name() != "pyrosolver_sparse":
+        print("[workflow] Creating resize container DOP")
+        try:
+            resize = dopnet.createNode("gasresizefluiddynamic", "resize_container1")
+            all_nodes.append(resize.path())
+        except hou.OperationFailed:
+            print("[workflow] Warning: gasresizefluiddynamic not available, skipping")
+    else:
+        print("[workflow] Skipping gasresizefluiddynamic (sparse solver has built-in resize)")
 
     # -- Merge DOP to combine smoke object and source volume
     print("[workflow] Creating merge DOP and wiring solver chain")
@@ -363,9 +392,10 @@ def _setup_pyro_sim(
     """Build a complete Pyro smoke/fire simulation network.
 
     Tries the modern SOP-level approach first (Houdini 20+, using
-    pyrosource + pyrosolver SOPs).  Falls back to the classic DOP
-    approach (smokeobject + sourcevolume + pyrosolver DOPs) for
-    older Houdini versions.
+    pyrosource + pyrosolver SOPs).  Falls back to the sparse DOP
+    approach (smokeobject_sparse + sourcevolume + pyrosolver_sparse)
+    for older Houdini versions. Dense smokeobject/pyrosolver DOPs are
+    H22-deprecated and only used if the sparse types are missing.
 
     Args:
         source_geo: Path to the source geometry SOP to drive the simulation.

@@ -45,7 +45,7 @@ async def _exercise_stdio_server() -> None:
             assert initialized.serverInfo.name == "FXHoudini"
 
             tools = await session.list_tools()
-            assert len(tools.tools) == 205
+            assert len(tools.tools) == 211
             assert {tool.name for tool in tools.tools} >= {
                 "build_network",
                 "get_node_card",
@@ -59,7 +59,13 @@ async def _exercise_stdio_server() -> None:
             # read is live session state; there are no static resources.
             assert len((await session.list_resources()).resources) == 0
             assert len(templates.resourceTemplates) == 8
-            assert len(prompts.prompts) == 6
+            assert len(prompts.prompts) == 10
+            assert {prompt.name for prompt in prompts.prompts} >= {
+                "cinematic_rbd_fracture_pipeline",
+                "golden_fluid_pipeline",
+                "cop_pyro_pipeline",
+                "cop_heightfield_terrain",
+            }
 
             status = await session.call_tool("get_houdini_connection_status", {})
             assert status.isError is False

@@ -124,7 +124,7 @@ def test_claude_code_project_config_is_checkout_relative() -> None:
     assert server["env"] == {
         "HOUDINI_HOST": "127.0.0.1",
         "HOUDINI_PORT": "18100",
-        "FXHOUDINIMCP_TOOL_PROFILE": "core",
+        "FXHOUDINIMCP_TOOL_PROFILE": "full",
     }
 
 

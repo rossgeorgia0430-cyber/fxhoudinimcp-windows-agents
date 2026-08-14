@@ -248,6 +248,60 @@ def _get_prims(
 register_handler("geometry.get_prims", _get_prims)
 
 
+def _bulk_attrib_values(
+    geo: hou.Geometry, attrib: Any, attrib_name: str, cls: str
+) -> Any:
+    """Read an attribute via bulk HOM accessors.
+
+    H22 adds ``*ListAttribValues`` for array attributes. Use them when the
+    attribute is an array type and the method exists; otherwise keep the
+    20.5/21 scalar bulk getters.
+    """
+    data_type = attrib.dataType()
+    is_array = bool(getattr(attrib, "isArrayType", lambda: False)())
+    list_names = {
+        "point": {
+            hou.attribData.Float: "pointFloatListAttribValues",
+            hou.attribData.Int: "pointIntListAttribValues",
+            hou.attribData.String: "pointStringListAttribValues",
+        },
+        "prim": {
+            hou.attribData.Float: "primFloatListAttribValues",
+            hou.attribData.Int: "primIntListAttribValues",
+            hou.attribData.String: "primStringListAttribValues",
+        },
+        "vertex": {
+            hou.attribData.Float: "vertexFloatListAttribValues",
+            hou.attribData.Int: "vertexIntListAttribValues",
+            hou.attribData.String: "vertexStringListAttribValues",
+        },
+    }
+    if is_array:
+        method_name = list_names.get(cls, {}).get(data_type)
+        if method_name and hasattr(geo, method_name):
+            return getattr(geo, method_name)(attrib_name)
+
+    if data_type == hou.attribData.Float:
+        getter = {
+            "point": geo.pointFloatAttribValues,
+            "prim": geo.primFloatAttribValues,
+            "vertex": geo.vertexFloatAttribValues,
+        }[cls]
+    elif data_type == hou.attribData.Int:
+        getter = {
+            "point": geo.pointIntAttribValues,
+            "prim": geo.primIntAttribValues,
+            "vertex": geo.vertexIntAttribValues,
+        }[cls]
+    else:
+        getter = {
+            "point": geo.pointStringAttribValues,
+            "prim": geo.primStringAttribValues,
+            "vertex": geo.vertexStringAttribValues,
+        }[cls]
+    return getter(attrib_name)
+
+
 ###### geometry.get_attrib_values
 
 def _get_attrib_values(
@@ -272,25 +326,19 @@ def _get_attrib_values(
         if attrib is None:
             raise hou.OperationFailed(
                 f"Point attribute '{attrib_name}' not found on {node_path}")
-        all_values = geo.pointFloatAttribValues(attrib_name) if attrib.dataType() == hou.attribData.Float \
-            else geo.pointIntAttribValues(attrib_name) if attrib.dataType() == hou.attribData.Int \
-            else geo.pointStringAttribValues(attrib_name)
+        all_values = _bulk_attrib_values(geo, attrib, attrib_name, "point")
     elif cls == "prim":
         attrib = geo.findPrimAttrib(attrib_name)
         if attrib is None:
             raise hou.OperationFailed(
                 f"Prim attribute '{attrib_name}' not found on {node_path}")
-        all_values = geo.primFloatAttribValues(attrib_name) if attrib.dataType() == hou.attribData.Float \
-            else geo.primIntAttribValues(attrib_name) if attrib.dataType() == hou.attribData.Int \
-            else geo.primStringAttribValues(attrib_name)
+        all_values = _bulk_attrib_values(geo, attrib, attrib_name, "prim")
     elif cls == "vertex":
         attrib = geo.findVertexAttrib(attrib_name)
         if attrib is None:
             raise hou.OperationFailed(
                 f"Vertex attribute '{attrib_name}' not found on {node_path}")
-        all_values = geo.vertexFloatAttribValues(attrib_name) if attrib.dataType() == hou.attribData.Float \
-            else geo.vertexIntAttribValues(attrib_name) if attrib.dataType() == hou.attribData.Int \
-            else geo.vertexStringAttribValues(attrib_name)
+        all_values = _bulk_attrib_values(geo, attrib, attrib_name, "vertex")
     elif cls in ("detail", "global"):
         attrib = geo.findGlobalAttrib(attrib_name)
         if attrib is None:
@@ -308,12 +356,24 @@ def _get_attrib_values(
     else:
         raise ValueError(f"Invalid attrib_class: {attrib_class!r}")
 
-    tuple_size = max(attrib.size(), 1)
-    total_elements = len(all_values) // tuple_size
-    # Clamp page to element boundaries
-    start_elem = max(0, min(start, total_elements))
-    end_elem = min(start_elem + max(1, count), total_elements)
-    page = list(all_values[start_elem * tuple_size : end_elem * tuple_size])
+    is_array = bool(getattr(attrib, "isArrayType", lambda: False)())
+    array_page = (
+        is_array
+        and all_values
+        and isinstance(all_values[0], (list, tuple))
+    )
+    if array_page:
+        total_elements = len(all_values)
+        start_elem = max(0, min(start, total_elements))
+        end_elem = min(start_elem + max(1, count), total_elements)
+        page = [list(item) for item in all_values[start_elem:end_elem]]
+        tuple_size = "array"
+    else:
+        tuple_size = max(attrib.size(), 1)
+        total_elements = len(all_values) // tuple_size
+        start_elem = max(0, min(start, total_elements))
+        end_elem = min(start_elem + max(1, count), total_elements)
+        page = list(all_values[start_elem * tuple_size : end_elem * tuple_size])
 
     return {
         "node_path": node_path,
@@ -321,6 +381,7 @@ def _get_attrib_values(
         "attrib_class": attrib_class,
         "tuple_size": tuple_size,
         "type": attrib.dataType().name(),
+        "is_array": is_array,
         "total_elements": total_elements,
         "start": start_elem,
         "count": end_elem - start_elem,
@@ -859,23 +920,18 @@ def _read_flat_attrib(
             )
         return [float(component) for component in flat], tuple_size, 1
 
-    bulk_getters = {
-        "point": (geo.pointFloatAttribValues, geo.pointIntAttribValues),
-        "prim": (geo.primFloatAttribValues, geo.primIntAttribValues),
-        "vertex": (geo.vertexFloatAttribValues, geo.vertexIntAttribValues),
-    }
-    float_getter, int_getter = bulk_getters[cls]
-    if data_type == hou.attribData.Float:
-        all_values = float_getter(attrib_name)
-    elif data_type == hou.attribData.Int:
-        all_values = int_getter(attrib_name)
-    else:
+    all_values = _bulk_attrib_values(geo, attrib, attrib_name, cls)
+    if all_values and isinstance(all_values[0], (list, tuple)):
+        flat = [float(component) for item in all_values for component in item]
+        if attrib.isArrayType() and all_values:
+            tuple_size = max(len(all_values[0]), 1)
+    elif data_type not in (hou.attribData.Float, hou.attribData.Int):
         raise ValueError(
             f"Attribute '{attrib_name}' has non-numeric type "
             f"{data_type.name()}; only float/int are supported"
         )
-
-    flat = [float(value) for value in all_values]
+    else:
+        flat = [float(value) for value in all_values]
     count = len(flat) // tuple_size if tuple_size else 0
     return flat, tuple_size, count
 
@@ -938,6 +994,48 @@ def _max_abs_diff(a: list[float], b: list[float]) -> tuple[float, int, int]:
     return max_diff, num_differing, num_compared
 
 
+def _volume_compute_stats(
+    geo: hou.Geometry, attrib_name: str
+) -> tuple[list[float], list[float], list[float], int] | None:
+    """If ``attrib_name`` names a Volume/NanoVDB prim, use H22 compute*.
+
+    Returns ``(mins, maxs, means, count)`` or ``None`` to fall back to the
+    attribute-array path. Guarded with hasattr so 20.5/21 keep working.
+    """
+    try:
+        total = int(geo.intrinsicValue("primitivecount") or 0)
+    except Exception:
+        return None
+    for index in range(total):
+        prim = geo.prim(index)
+        try:
+            name = prim.attribValue("name")
+        except Exception:
+            name = None
+        if name != attrib_name:
+            continue
+        if not (
+            hasattr(prim, "computeMin")
+            and hasattr(prim, "computeMax")
+            and hasattr(prim, "computeAverage")
+        ):
+            return None
+        try:
+            raw_min = prim.computeMin()
+            raw_max = prim.computeMax()
+            raw_avg = prim.computeAverage()
+        except Exception:
+            return None
+
+        def _as_list(value: Any) -> list[float]:
+            if isinstance(value, (list, tuple)):
+                return [float(component) for component in value]
+            return [float(value)]
+
+        return _as_list(raw_min), _as_list(raw_max), _as_list(raw_avg), 1
+    return None
+
+
 ###### geometry.attribute_stats
 
 def _attribute_stats(
@@ -971,11 +1069,16 @@ def _attribute_stats(
         for frame in sample_frames:
             hou.setFrame(frame)
             geo = _get_sop_geo(node_path)
-            flat, tuple_size, _ = _read_flat_attrib(
-                geo, attrib_name, attrib_class
-            )
-            components = tuple_size
-            mins, maxs, means, count = _component_stats(flat, tuple_size)
+            volume_hit = _volume_compute_stats(geo, attrib_name)
+            if volume_hit is not None:
+                mins, maxs, means, count = volume_hit
+                components = len(mins)
+            else:
+                flat, tuple_size, _ = _read_flat_attrib(
+                    geo, attrib_name, attrib_class
+                )
+                components = tuple_size
+                mins, maxs, means, count = _component_stats(flat, tuple_size)
             per_frame.append({
                 "frame": frame,
                 "min": mins,

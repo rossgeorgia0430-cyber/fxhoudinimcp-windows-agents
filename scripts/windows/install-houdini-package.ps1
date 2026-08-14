@@ -101,13 +101,13 @@ if ([string]::IsNullOrWhiteSpace($HoudiniVersion)) {
         $versionMatch = [regex]::Match($productVersion, '(\d+)\.(\d+)')
     }
     if (-not $versionMatch.Success) {
-        throw "Could not determine the Houdini major/minor version from '$detectedRoot'. Pass -HoudiniVersion, for example 21.0."
+        throw "Could not determine the Houdini major/minor version from '$detectedRoot'. Pass -HoudiniVersion, for example 22.0."
     }
     $HoudiniVersion = "$($versionMatch.Groups[1].Value).$($versionMatch.Groups[2].Value)"
 }
 
 if ($HoudiniVersion -notmatch '^\d+\.\d+$') {
-    throw "HoudiniVersion must be major.minor, for example '21.0'. Received '$HoudiniVersion'."
+    throw "HoudiniVersion must be major.minor, for example '22.0'. Received '$HoudiniVersion'."
 }
 
 $preferencesDir = if (-not [string]::IsNullOrWhiteSpace($HoudiniPreferencesRoot)) {

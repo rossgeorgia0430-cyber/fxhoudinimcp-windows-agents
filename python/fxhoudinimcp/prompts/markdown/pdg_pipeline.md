@@ -11,7 +11,7 @@ Before writing a Python Processor or Python Script, call list_node_types(context
 | Category | Nodes |
 |----------|-------|
 | Generators | genericgenerator, filepattern, filerange, rangegenerate, wedge |
-| ROP rendering | ropfetch, ropgeometry, ropmantra, ropkarma, ropusd, ropalembic, ropimage, ropfbx, ropflipbook, ropcomposite, ropopengl |
+| ROP rendering | ropfetch, ropgeometry, ropmantra, ropkarma, ropusd, ropalembic, ropimage, ropfbx, ropflipbook, ropcomposite, ropopengl (drives the `opengl` ROP; H22 viewport is Vulkan, but this TOP/ROP type is still shipped) |
 | Processors | hdaprocessor, pythonprocessor, pythonscript |
 | Partitioners | partitionbyframe, partitionbyattribute, partitionbyexpression, partitionbyindex, partitionbycombination, partitionbyrange, partitionbytile, waitforall |
 | File ops | filepattern, filerange, fileremove, filerename, filecopy, filecompress, filedecompress, makedir |

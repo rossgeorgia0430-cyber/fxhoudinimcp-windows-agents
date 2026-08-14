@@ -40,6 +40,8 @@ _HANDLER_MODULES = [
     "take_handlers",
     "image_handlers",
     "vat_handlers",
+    "diagnostics_handlers",
+    "alembic_diagnostics_handlers",
 ]
 
 _loaded = []

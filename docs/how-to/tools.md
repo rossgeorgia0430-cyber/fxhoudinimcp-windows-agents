@@ -2,7 +2,7 @@
 
 ## Overview
 
-fxhoudinimcp exposes **205 tools** across **24 categories**, covering every major Houdini context.
+fxhoudinimcp exposes **211 tools** across **25 categories**, covering every major Houdini context.
 
 > **Recently extended (+21 tools).** New **Image** category — `inspect_image`,
 > `sample_image`, `image_region_stats` (EXR/texture inspection via
@@ -135,13 +135,21 @@ Create/edit wrangle nodes and validate VEX code.
 
 Execute Python, HScript, expressions, and manage environment variables.
 
-### Viewport/UI (13 tools)
+### Viewport/UI (14 tools)
 
-Pane management, viewport screenshots, and error detection.
+Pane management, viewport screenshots, flipbook/playblast recording over a
+frame range (MPlay or disk), and error detection.
 
 ### Scene Context (8 tools)
 
 Network overview, cook chains, selection state, scene summaries, and error analysis.
+
+### Diagnostics (5 tools)
+
+Trace upstream geometry counts, profile scalar-attribute distributions,
+compare attributes between SOPs, estimate multi-frame Alembic geometry cook
+cost/topology variation, and verify the shot-space convention
+`UE=(H.x,-H.y,H.z)*100` before export.
 
 ### Workflows (8 tools)
 

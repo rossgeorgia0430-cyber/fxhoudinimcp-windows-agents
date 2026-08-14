@@ -107,3 +107,49 @@ def debug_scene(
         "debug_scene.md",
         problem_description=problem_description,
     )
+
+
+@mcp.prompt()
+def golden_fluid_pipeline() -> str:
+    """Playbook for curve-guided fluid effects delivered to Unreal Engine.
+
+    Covers the simulate-once-then-post-process-analytically paradigm: PTF
+    frames, unbend/loop/rebend tube-space math, seamless loop closure,
+    form-preserving mesh-space shape knobs, velocity recomputation for UE
+    motion vectors, shader-channel contracts, Alembic export guards, and
+    VAT atlas baking for Niagara particles.
+    """
+    return load_markdown("golden_fluid_pipeline.md")
+
+
+@mcp.prompt()
+def cop_pyro_pipeline() -> str:
+    """Playbook for Houdini 22 COP Pyro (fire/smoke/mist in Copernicus).
+
+    Covers Pyro Block 2.0, the seven official Pyro Configure templates,
+    implicit sources/collisions, verification via get_cop_vdb/flipbook,
+    DOP-level license warnings, and exits to VDB / flipbook / VAT.
+    """
+    return load_markdown("cop_pyro_pipeline.md")
+
+
+@mcp.prompt()
+def cop_heightfield_terrain() -> str:
+    """Playbook for Houdini 22 HeightField COP game-level terrain.
+
+    Covers the COP heightfield erode/strata/terrace/mask/slump toolset,
+    3D output flag preview, and SOP/texture/VAT exits.
+    """
+    return load_markdown("cop_heightfield_terrain.md")
+
+
+@mcp.prompt()
+def cinematic_rbd_fracture_pipeline() -> str:
+    """Playbook for art-directed packed RBD fracture delivered to Unreal.
+
+    Covers mixed thin-shell fracture, coherent impulse design, Bullet-only
+    rigid transforms, localized artist CTRL design, material-preserving Labs
+    RBD-to-FBX preparation, retime tail frames, and FBX metadata/reimport
+    validation.
+    """
+    return load_markdown("cinematic_rbd_fracture_pipeline.md")

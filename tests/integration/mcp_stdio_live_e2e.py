@@ -34,7 +34,7 @@ async def _exercise(port: int) -> None:
             await session.initialize()
             tools = await session.list_tools()
             tool_names = {tool.name for tool in tools.tools}
-            assert len(tools.tools) == 79, len(tools.tools)
+            assert len(tools.tools) == 110, len(tools.tools)
             assert tool_names >= {
                 "get_houdini_connection_status",
                 "get_scene_info",

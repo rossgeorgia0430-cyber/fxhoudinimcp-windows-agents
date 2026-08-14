@@ -15,6 +15,11 @@ from fxhoudinimcp.tools.scene import (
     get_scene_info,
     new_scene,
 )
+from fxhoudinimcp.tools.diagnostics import (
+    analyze_alembic_output,
+    check_houdini_to_ue_space,
+)
+from fxhoudinimcp.tools.viewport import flipbook
 from fxhoudinimcp.tools.workflows import setup_pyro_sim
 
 
@@ -145,4 +150,95 @@ class TestMaterialTools:
         mock_bridge.execute.assert_called_once_with(
             "materials.list_materials",
             {"root_path": "/mat"},
+        )
+
+
+class TestViewportTools:
+    @pytest.mark.asyncio
+    async def test_flipbook_defaults_to_mplay(self, mock_ctx, mock_bridge):
+        # No output_path / range → only the always-sent frame_increment is
+        # forwarded; the handler resolves range + MPlay defaults itself.
+        await flipbook(mock_ctx)
+        mock_bridge.execute.assert_called_once_with(
+            "viewport.flipbook",
+            {"frame_increment": 1},
+        )
+
+    @pytest.mark.asyncio
+    async def test_flipbook_forwards_all_params(self, mock_ctx, mock_bridge):
+        await flipbook(
+            mock_ctx,
+            output_path="$HIP/fb/preview.$F4.jpg",
+            start_frame=1,
+            end_frame=668,
+            camera_path="/obj/cam_shot46",
+            resolution=[1280, 720],
+            frame_increment=2,
+            open_in_mplay=False,
+            pane_name="persp1",
+        )
+        mock_bridge.execute.assert_called_once_with(
+            "viewport.flipbook",
+            {
+                "frame_increment": 2,
+                "output_path": "$HIP/fb/preview.$F4.jpg",
+                "start_frame": 1,
+                "end_frame": 668,
+                "camera_path": "/obj/cam_shot46",
+                "resolution": [1280, 720],
+                "open_in_mplay": False,
+                "pane_name": "persp1",
+            },
+        )
+
+
+class TestDiagnosticsTools:
+    @pytest.mark.asyncio
+    async def test_analyze_alembic_output_forwards_optional_values(
+        self, mock_ctx, mock_bridge
+    ):
+        await analyze_alembic_output(
+            mock_ctx,
+            "/obj/geo/OUT_ABC",
+            output_sop_path="/obj/geo/OUT_MESH",
+            start_frame=174,
+            end_frame=701,
+            frame_step=1,
+            sample_count=6,
+            fps=60,
+        )
+        mock_bridge.execute.assert_called_once_with(
+            "diagnostics.analyze_alembic_output",
+            {
+                "node_path": "/obj/geo/OUT_ABC",
+                "output_sop_path": "/obj/geo/OUT_MESH",
+                "start_frame": 174,
+                "end_frame": 701,
+                "frame_step": 1,
+                "sample_count": 6,
+                "fps": 60,
+            },
+        )
+
+    @pytest.mark.asyncio
+    async def test_check_houdini_to_ue_space_forwards_contract(
+        self, mock_ctx, mock_bridge
+    ):
+        await check_houdini_to_ue_space(
+            mock_ctx,
+            "/obj/geo/BEFORE_UE",
+            "/obj/geo/AFTER_UE",
+            scale=100,
+            tolerance=0.01,
+            max_point_samples=4096,
+        )
+        mock_bridge.execute.assert_called_once_with(
+            "diagnostics.check_houdini_to_ue_space",
+            {
+                "input_node_path": "/obj/geo/BEFORE_UE",
+                "output_node_path": "/obj/geo/AFTER_UE",
+                "scale": 100,
+                "tolerance": 0.01,
+                "max_point_samples": 4096,
+            },
         )

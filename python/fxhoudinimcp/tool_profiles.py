@@ -37,6 +37,7 @@ _CORE_MODULES = frozenset(
         "geometry",
         "image",
         "vat",
+        "diagnostics",
     }
 )
 

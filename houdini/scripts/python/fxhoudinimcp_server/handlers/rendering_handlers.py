@@ -1,7 +1,8 @@
 """Rendering handlers for FXHoudini-MCP.
 
 Provides tools for viewport capture, render node management, and rendering
-operations including Karma, OpenGL, and other Houdini renderers.
+operations including Karma, the OpenGL ROP (still present on H22
+even though the viewport is Vulkan), and other Houdini renderers.
 """
 
 from __future__ import annotations
@@ -31,6 +32,42 @@ _RENDER_JOBS: dict[str, dict] = {}
 # Render button parm names tried, in order, when use_render_button is set with
 # no explicit button_parm. Shared by render_rop and the async worker.
 _RENDER_BUTTON_CANDIDATES = ("renderall", "execute", "render", "rendersingle")
+
+# USD/Karma ROPs that invoke husk. H22 husk defaults to the USD stage frame
+# range unless ``-f`` / ``-n 1`` is passed; HOM ``node.render()`` without an
+# explicit range can therefore emit many frames when the caller meant
+# "current frame" (ROP ``trange==0``).
+_HUSK_ROP_TYPES = frozenset(
+    {"usdrender", "karma", "usdrenderer", "karma::2.0"}
+)
+
+
+def _is_husk_rop(node: hou.Node) -> bool:
+    name = node.type().name()
+    return name in _HUSK_ROP_TYPES or "usdrender" in name or name.startswith("karma")
+
+
+def _resolve_render_frame_range(node: hou.Node, frame_range: list | None) -> list | None:
+    """Return an explicit ``[start, end, inc]`` when husk must be pinned.
+
+    Caller-supplied ranges win. For husk ROPs set to "Render Current Frame"
+    (``trange==0`` or missing), pin to ``hou.frame()``. Other ROPs, and husk
+    ROPs with an explicit frame-range mode, keep their own settings.
+    """
+    if frame_range is not None:
+        return list(frame_range)
+    if not _is_husk_rop(node):
+        return None
+    trange = node.parm("trange")
+    if trange is not None:
+        try:
+            mode = int(trange.eval())
+        except (TypeError, ValueError):
+            mode = 0
+        if mode != 0:
+            return None
+    current = float(hou.frame())
+    return [current, current, 1.0]
 
 # Output-path parm names checked explicitly, plus any string parm whose name
 # starts with one of _OUTPUT_PARM_PREFIXES (covers Labs VAT path_pos/path_geo).
@@ -401,7 +438,9 @@ def create_render_node(
 
     Args:
         renderer: Renderer type. Supported values include:
-            'karma' (USD Karma), 'opengl' (OpenGL), 'ifd' (Mantra),
+            'karma' (USD Karma), 'opengl' (OpenGL ROP — still shipped
+            on H22; the viewport renderer itself is Vulkan),
+            'ifd' (Mantra),
             'rop_geometry' (Geometry ROP), 'fetch', 'merge', etc.
         name: Optional node name. Auto-generated if not provided.
         camera: Optional camera path to assign.
@@ -414,7 +453,14 @@ def create_render_node(
     # Map friendly renderer names to actual node types
     renderer_map = {
         "karma": "karma",
+        # H22 removed the OpenGL *viewport* but the `opengl` ROP type
+        # is still registered (verified 22.0.368). Keep the alias.
         "opengl": "opengl",
+        # H22 rewrote glTF 2.0. The ROP type is `gltf` (creates `gltf::2.0`);
+        # the old `rop_gltf` name is invalid in /out.
+        "gltf": "gltf",
+        "rop_gltf": "gltf",
+        "gltf::2.0": "gltf::2.0",
         "mantra": "ifd",
         "ifd": "ifd",
         "geometry": "rop_geometry",
@@ -488,13 +534,14 @@ def start_render(
             f"(category: {node.type().category().name()})."
         )
 
+    resolved = _resolve_render_frame_range(node, frame_range)
     try:
-        if frame_range is not None:
-            if len(frame_range) < 2:
+        if resolved is not None:
+            if len(resolved) < 2:
                 raise ValueError("frame_range must have at least [start, end].")
-            start = float(frame_range[0])
-            end = float(frame_range[1])
-            inc = float(frame_range[2]) if len(frame_range) > 2 else 1.0
+            start = float(resolved[0])
+            end = float(resolved[1])
+            inc = float(resolved[2]) if len(resolved) > 2 else 1.0
             # RopNode.render takes the increment as the third element of
             # frame_range; there is no frame_increment keyword.
             node.render(
@@ -513,7 +560,7 @@ def start_render(
     return {
         "success": True,
         "node_path": node_path,
-        "frame_range": frame_range,
+        "frame_range": resolved,
         "message": "Render completed.",
     }
 
@@ -824,15 +871,18 @@ def render_rop(
         used_button = True
         button_name = btn.name()
         btn.pressButton()
-    elif frame_range is not None:
-        if len(frame_range) < 2:
-            raise ValueError("frame_range must have at least [start, end].")
-        start = float(frame_range[0])
-        end = float(frame_range[1])
-        inc = float(frame_range[2]) if len(frame_range) > 2 else 1.0
-        node.render(frame_range=(start, end, inc), verbose=verbose)
     else:
-        node.render(verbose=verbose)
+        resolved = _resolve_render_frame_range(node, frame_range)
+        if resolved is not None:
+            if len(resolved) < 2:
+                raise ValueError("frame_range must have at least [start, end].")
+            start = float(resolved[0])
+            end = float(resolved[1])
+            inc = float(resolved[2]) if len(resolved) > 2 else 1.0
+            node.render(frame_range=(start, end, inc), verbose=verbose)
+            frame_range = resolved
+        else:
+            node.render(verbose=verbose)
 
     try:
         errors = list(node.errors()) if node.errors() else []
@@ -940,6 +990,8 @@ def start_render_job(
         hou.hipFile.setName(original)
 
     cmd = [hython, worker, temp_hip, node.path(), status_file]
+    if not use_render_button:
+        frame_range = _resolve_render_frame_range(node, frame_range)
     if not use_render_button and frame_range is not None and len(frame_range) >= 2:
         start = float(frame_range[0])
         end = float(frame_range[1])

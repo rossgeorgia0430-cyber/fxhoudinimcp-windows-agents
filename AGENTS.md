@@ -15,9 +15,11 @@ or Houdini handlers. Report the exact commands and outcomes.
 ## Houdini work style
 
 Use scene inspection, node discovery/card lookup, graph dry-run, graph build,
-verification, and visual capture as the normal sequence. Preserve all 205 MCP
+verification, and visual capture as the normal sequence. Preserve all 211 MCP
 tools in this fork (the catalog grew from 180 with the render/image/geometry
-verification additions, then +4 with the `vat` module; the `image` and `vat`
+verification additions, then +4 with the `vat` module, then +1 with the
+viewport `flipbook`/playblast tool, then +5 with geometry/export diagnostics;
+the `image`, `vat`, and `diagnostics`
 modules join the `core` profile and the render helpers surface in `core` via
 `_PROFILE_EXTRA_TOOLS`). Prefer typed, native tool contracts over opaque JSON.
 
