@@ -11,6 +11,7 @@ from __future__ import annotations
 import base64
 import logging
 import os
+import re
 
 # Third-party
 import hou
@@ -833,7 +834,7 @@ def flipbook(
     to_mplay = open_in_mplay if open_in_mplay is not None else (not output_path)
     resolved_output = ""
     if output_path:
-        resolved_output = hou.expandString(output_path)
+        resolved_output = _expand_keeping_frame_tokens(output_path)
         out_dir = os.path.dirname(resolved_output)
         if out_dir and not os.path.isdir(out_dir):
             os.makedirs(out_dir, exist_ok=True)
@@ -846,7 +847,7 @@ def flipbook(
 
     scene_viewer.flipbook(viewport, settings)
 
-    return {
+    result = {
         "success": True,
         "pane_name": scene_viewer.name(),
         "viewport_name": viewport.name(),
@@ -859,9 +860,40 @@ def flipbook(
         "to_mplay": bool(to_mplay),
         "destination": "mplay" if not output_path else resolved_output,
     }
+    if resolved_output:
+        missing = _missing_flipbook_files(resolved_output, f0, f1, inc)
+        result["missing_frames"] = missing[:_MAX_LISTED_MISSING_FRAMES]
+        result["missing_frame_count"] = len(missing)
+    return result
 
 
 ###### Helpers
+
+# Frame tokens ($F, $F4, ${F4}, $FF) must reach the flipbook unexpanded;
+# expanded early they name every frame after the current one, so each frame
+# overwrites the same file.
+_FRAME_TOKEN = re.compile(r"\$(?:\{FF?\d*\}|FF(?![A-Za-z0-9_])|F\d*(?![A-Za-z_]))")
+_MAX_LISTED_MISSING_FRAMES = 20
+
+
+def _expand_keeping_frame_tokens(path: str) -> str:
+    """Expand variables such as $HIP in a path while keeping frame tokens."""
+    tokens = _FRAME_TOKEN.findall(path)
+    parts = [hou.expandString(part) for part in _FRAME_TOKEN.split(path)]
+    return parts[0] + "".join(token + part for token, part in zip(tokens, parts[1:], strict=True))
+
+
+def _missing_flipbook_files(output: str, start: float, end: float, increment: int) -> list[float]:
+    """Frames whose flipbook file is absent; a video file counts as one frame."""
+    if not _FRAME_TOKEN.search(output):
+        return [] if os.path.isfile(output) else [start]
+    frames = []
+    frame = start
+    while frame <= end:
+        frames.append(frame)
+        frame += increment
+    return [f for f in frames if not os.path.isfile(hou.expandStringAtFrame(output, f))]
+
 
 def _find_scene_viewer(pane_name: str = None):
     """Find a Scene Viewer pane tab by name, or the first one available.

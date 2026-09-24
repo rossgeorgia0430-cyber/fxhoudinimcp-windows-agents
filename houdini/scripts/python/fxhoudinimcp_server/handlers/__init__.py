@@ -42,6 +42,9 @@ _HANDLER_MODULES = [
     "vat_handlers",
     "diagnostics_handlers",
     "alembic_diagnostics_handlers",
+    "mesh_diagnostics_handlers",
+    "motion_diagnostics_handlers",
+    "file_inspection_handlers",
 ]
 
 _loaded = []

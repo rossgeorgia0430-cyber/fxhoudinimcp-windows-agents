@@ -81,12 +81,12 @@ def test_profile_resolution_and_alias():
 @pytest.mark.parametrize(
     ("profile", "expected_count"),
     [
-        (None, 110),
-        ("core", 110),
-        ("modeling", 142),
-        ("simulation", 149),
-        ("usd-render", 165),
-        ("full", 211),
+        (None, 118),
+        ("core", 118),
+        ("modeling", 150),
+        ("simulation", 157),
+        ("usd-render", 173),
+        ("full", 219),
     ],
 )
 def test_profiles_filter_the_actual_fastmcp_registry(profile, expected_count):
@@ -109,5 +109,5 @@ def test_invalid_profile_falls_back_to_real_core_surface():
     snapshot = _profile_snapshot("not-a-profile")
     assert snapshot["status"]["name"] == "core"
     assert snapshot["status"]["requested"] == "not-a-profile"
-    assert snapshot["status"]["tool_count"] == 110
+    assert snapshot["status"]["tool_count"] == 118
     assert "fallback_reason" in snapshot["status"]

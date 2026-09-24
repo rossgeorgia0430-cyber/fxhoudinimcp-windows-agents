@@ -18,7 +18,11 @@ from fxhoudinimcp.tools.scene import (
 from fxhoudinimcp.tools.diagnostics import (
     analyze_alembic_output,
     check_houdini_to_ue_space,
+    inspect_fbx,
+    rbd_motion_stats,
+    ray_intersect,
 )
+from fxhoudinimcp.tools.image import make_contact_sheet
 from fxhoudinimcp.tools.viewport import flipbook
 from fxhoudinimcp.tools.workflows import setup_pyro_sim
 
@@ -242,3 +246,86 @@ class TestDiagnosticsTools:
                 "max_point_samples": 4096,
             },
         )
+
+    @pytest.mark.asyncio
+    async def test_rbd_motion_stats_omits_unset_options_and_passes_timeout(
+        self, mock_ctx, mock_bridge
+    ):
+        await rbd_motion_stats(
+            mock_ctx,
+            "/obj/rbd/sim_points",
+            11,
+            150,
+            reset_node_path="/obj/rbd/solver",
+            timeout=600,
+        )
+        mock_bridge.execute.assert_called_once_with(
+            "diagnostics.rbd_motion_stats",
+            {
+                "node_path": "/obj/rbd/sim_points",
+                "start_frame": 11,
+                "end_frame": 150,
+                "name_attrib": "name",
+                "up_axis": "y",
+                "moving_speed": 0.3,
+                "rebound_speed": 0.5,
+                "top_n": 5,
+                "reset_node_path": "/obj/rbd/solver",
+            },
+            timeout=600,
+        )
+
+    @pytest.mark.asyncio
+    async def test_ray_intersect_grid_mode_forwards_only_grid_arguments(
+        self, mock_ctx, mock_bridge
+    ):
+        await ray_intersect(
+            mock_ctx, "/obj/floor/OUT", grid_center=[0, 50, 0], grid_size=40, label_attrib="name"
+        )
+        mock_bridge.execute.assert_called_once_with(
+            "diagnostics.ray_intersect",
+            {
+                "node_path": "/obj/floor/OUT",
+                "grid_resolution": 10,
+                "max_results": 200,
+                "grid_center": [0, 50, 0],
+                "grid_size": 40,
+                "label_attrib": "name",
+            },
+        )
+
+    @pytest.mark.asyncio
+    async def test_inspect_fbx_forwards_comparison(self, mock_ctx, mock_bridge):
+        await inspect_fbx(
+            mock_ctx, "$HIP/out/pieces.fbx", compare_sop_path="/obj/rbd/OUT_unpacked", frames=[1, 50]
+        )
+        mock_bridge.execute.assert_called_once_with(
+            "diagnostics.inspect_fbx",
+            {
+                "file_path": "$HIP/out/pieces.fbx",
+                "name_attrib": "name",
+                "max_listed": 20,
+                "compare_sop_path": "/obj/rbd/OUT_unpacked",
+                "frames": [1, 50],
+            },
+            timeout=None,
+        )
+
+
+class TestImageTools:
+    @pytest.mark.asyncio
+    async def test_make_contact_sheet_returns_inline_preview(self, mock_ctx, mock_bridge):
+        mock_bridge.execute.return_value = {
+            "output_path": "/tmp/sheet.jpg",
+            "rows": 2,
+            "image_base64": "aGVsbG8=",
+            "mime_type": "image/jpeg",
+        }
+        content = await make_contact_sheet(mock_ctx, ["/tmp/a.jpg", "/tmp/b.jpg"], "/tmp/sheet.jpg")
+        mock_bridge.execute.assert_called_once_with(
+            "image.make_contact_sheet",
+            {"images": ["/tmp/a.jpg", "/tmp/b.jpg"], "output_path": "/tmp/sheet.jpg", "columns": 4},
+        )
+        assert content[0].type == "text"
+        assert content[1].type == "image"
+        assert content[1].mimeType == "image/jpeg"

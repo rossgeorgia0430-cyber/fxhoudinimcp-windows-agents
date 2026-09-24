@@ -2,7 +2,7 @@
 
 ## Overview
 
-fxhoudinimcp exposes **211 tools** across **25 categories**, covering every major Houdini context.
+fxhoudinimcp exposes **219 tools** across **25 categories**, covering every major Houdini context.
 
 > **Recently extended (+21 tools).** New **Image** category — `inspect_image`,
 > `sample_image`, `image_region_stats` (EXR/texture inspection via
@@ -109,13 +109,14 @@ empty); `list_rop_outputs` resolves a ROP's output paths and stats them; and
 `start_render_job`/`get_render_job`/`list_render_jobs`/`cancel_render_job` run
 a long render in a detached `hython` process so it never blocks the session.
 
-### Image (3 tools)
+### Image (4 tools)
 
 Inspect EXR/texture files on disk without leaving Houdini. `inspect_image`
 reports dimensions, channels, and per-channel statistics; `sample_image`
 reads exact pixel values at a coordinate; `image_region_stats` aggregates a
-sub-region. Built on OpenImageIO (ships with Houdini) — ideal for verifying
-baked VAT position/color textures.
+sub-region; `make_contact_sheet` tiles a flipbook sequence or a set of renders
+into one sheet and returns an inline preview. Built on OpenImageIO (ships with
+Houdini) — ideal for verifying baked VAT position/color textures.
 
 ### VAT (4 tools)
 
@@ -138,18 +139,32 @@ Execute Python, HScript, expressions, and manage environment variables.
 ### Viewport/UI (14 tools)
 
 Pane management, viewport screenshots, flipbook/playblast recording over a
-frame range (MPlay or disk), and error detection.
+frame range (MPlay, an image sequence via a `$F4` token, or video; frames that
+were not written are reported), and error detection.
 
 ### Scene Context (8 tools)
 
 Network overview, cook chains, selection state, scene summaries, and error analysis.
 
-### Diagnostics (5 tools)
+### Diagnostics (12 tools)
 
 Trace upstream geometry counts, profile scalar-attribute distributions,
 compare attributes between SOPs, estimate multi-frame Alembic geometry cook
 cost/topology variation, and verify the shot-space convention
 `UE=(H.x,-H.y,H.z)*100` before export.
+
+Mesh and export checks: `mesh_topology_report` proves closedness,
+connectivity, open curves, and enclosed volume (optionally per piece);
+`uv_quality_report` finds collapsed, flipped, and unevenly scaled UVs per
+group; `ray_intersect` casts explicit or grid rays for ground heights and
+collision-coverage holes. Motion checks keyed by name instead of element
+index: `track_named_elements` follows joints, pieces, or points across frames
+(with optional bounds), and `rbd_motion_stats` steps a rigid-body result to
+report spread, speed, spin, rebound, floor penetration, and the settle frame.
+File checks: `inspect_fbx` re-imports an FBX to report hierarchy, key range,
+materials, static meshes, and split curve nodes, and compares piece positions
+against the source SOP; `inspect_hip_file` reads another HIP's nodes and
+non-default parameters in a separate `hython` without touching the session.
 
 ### Workflows (8 tools)
 

@@ -1,9 +1,10 @@
 # Cinematic RBD Fracture Pipeline
 
-Production playbook for art-directed thin-shell fracture in Houdini, natural
+Production playbook for art-directed fracture in Houdini, natural
 packed-piece Bullet motion, artist-friendly controls, and bone-based FBX
-delivery to Unreal Engine. It was distilled from a train-window shot, but the
-rules below are intentionally shot-independent. Never copy a piece count,
+delivery to Unreal Engine. It covers thin shells broken in place and solid
+objects that arrive animated and break on contact; the rules below are
+intentionally shot-independent. Never copy a piece count,
 seed, hash, frame number, axis preset, or impulse value from an older shot
 without reading the live HIP and the current delivery files.
 
@@ -12,6 +13,7 @@ Use this playbook when the request sounds like:
 - break glass, a window frame, a facade panel, or another mixed thin shell;
 - make a fracture read as angular line-like silhouettes instead of a scale-up;
 - replace procedural piece translation with natural rigid-body motion;
+- let an object that falls or is thrown by animation shatter where it lands;
 - simplify a large CTRL panel for artists and localize it;
 - preserve multiple materials through packed RBD to FBX;
 - export real tail frames for Sequencer retiming and validate the FBX by
@@ -61,13 +63,13 @@ Establish:
 - whether an importer upstream has already converted axes.
 
 The summary geometry tools do not, by themselves, prove closedness, open-edge
-count, connected components, or wall thickness. For those facts, discover the
-version-specific native nodes with `get_node_card`, create a temporary probe
-branch using Group/Connectivity/Measure or equivalent SOPs, and read back the
-resulting groups/attributes. A read-only `execute_python` HOM audit that counts
-edge incidence and connected components is also valid. Never infer topology
-only from a bounding box or primitive count; remove reproducible probe nodes
-after the audit.
+count, connected components, or wall thickness. `mesh_topology_report` proves
+the first three plus enclosed volume and normal orientation, per piece when
+given the piece attribute. Faces connect only through shared points, so a mesh
+with split UV-seam points reports open edges until the seams are fused. Wall
+thickness still needs a temporary probe branch (Measure, ray SOP) or
+`ray_intersect`. Never infer topology only from a bounding box or primitive
+count.
 
 Treat documents and old manifests as hints. Regenerate counts, hashes, and
 parameter snapshots after the artist's final adjustment.
@@ -159,6 +161,42 @@ Bullet owns every later frame. Tune gravity, substeps, collision padding,
 bounce, friction, linear drag, and angular drag, then let velocity and angular
 velocity evolve. Do not overwrite P or orient downstream to fake easing.
 
+### Handing an animated object over at contact
+
+When an animated solid (a toppling pillar, a thrown crate) must shatter where
+it lands, keep the animation until contact and let Bullet take over from the
+frame before it:
+
+- Find the contact frame from the animated geometry against the collider
+  (`ray_intersect` from the lowest points, or the per-frame bounding box).
+- Give every piece the animation's velocity at the handoff frame: `v` from the
+  pivot difference to the next frame, `w` from the orientation difference.
+  Verify it reproduces the next animated frame before simulating.
+- Freeze the solver's input at the start frame (Time Shift). A time-dependent
+  input makes Bullet re-read `v` every frame, so all pieces look speed-capped.
+- The solver's simulation points use the start-frame pose as rest (pivot at the
+  start-frame centroid, identity orient). Transform the start-frame pieces, and
+  express the pre-contact animation relative to that pose too, so the handoff
+  frame has no jump.
+- Compare the animation's contact speed with the free-fall speed from its drop
+  height. Animation often compresses time; if contact is k times faster than
+  free fall, scale gravity by k squared so debris falls on the same clock and
+  reads heavy. Air drag instead makes stone look light and floaty.
+- A rigid impact at full speed mostly stops the pieces. For a breaking read,
+  add a one-time burst when each piece is first stopped (its vertical
+  velocity recovers from the handoff value): push outward and upward by a
+  fraction of the impact speed, larger for small debris than for heavy
+  chunks. Afterwards cap each piece's horizontal and upward speed to that
+  burst speed so the pile cannot squeeze pieces out at impact speed. A POP
+  Wrangle in the solver's `forces` subnet wired to PRESOLVE can edit `v@v`
+  directly, and Bullet uses it.
+- Keep debris inside the collider's coverage: a piece that flies past the
+  modeled ground falls forever. `ray_intersect` with a grid shows the holes.
+
+Measure every variant with `rbd_motion_stats` on the solver's simulation
+points instead of judging single frames: spread p50/p90/max, rebound speed,
+lowest height (penetration), spin, and the settle frame.
+
 ### Motion invariants
 
 Across pre-impact, start, early, mid, end, and tail samples:
@@ -238,7 +276,11 @@ Then combine:
 - `get_attrib_values`/`sample_geometry` for piece names and spot checks;
 - `verify_network`, `find_error_nodes`, and `get_node_errors_detailed`;
 - `capture_screenshot` at visual milestones;
-- `flipbook` from the shot camera for motion review.
+- `flipbook` from the shot camera for motion review, written as an image
+  sequence and reviewed with `make_contact_sheet`;
+- `rbd_motion_stats` for spread, rebound, penetration, spin, and settling;
+- `mesh_topology_report` with the piece attribute for multi-part pieces and
+  stray curves, and `uv_quality_report` on interior groups.
 
 Heavy cooks can exceed the bridge timeout while Houdini is still working. A
 timeout means completion is unknown: inspect cook state and outputs before
@@ -246,11 +288,11 @@ retrying. Reissuing the same mutation can duplicate work or overwrite an
 expression.
 
 `verify_animation` and `compare_frames` compare flattened element arrays; they
-do not key pieces by `name`. If order differs between frames, branches, or an
-FBX reimport, build a `name -> element` mapping in a temporary HOM audit (or use
-a future name-keyed diagnostic) and compare matched pieces. Never compare rest,
-simulation, or reimported joints by raw element index without first proving the
-ordering contract.
+do not key pieces by `name`. When order can differ between frames, branches,
+or an FBX reimport, use `track_named_elements` (per-name attributes and
+bounds) or the name-matched comparison of `inspect_fbx`. Never compare rest,
+simulation, or reimported joints by raw element index without first proving
+the ordering contract.
 
 ## 6. Preserve materials while applying packed RBD transforms
 
@@ -286,6 +328,32 @@ Requirements:
 Labs RBD to FBX creates a flat bone-based hierarchy suitable for an Unreal
 Skeletal Mesh and Animation Sequence. The expected invariant is one root plus
 one joint/bone per unique piece.
+
+### SOP FBX ROP with a path hierarchy
+
+The plain SOP `rop_fbx` also delivers a rigid hierarchy: give each packed piece
+a `path` of `<root>/<piece name>`, enable Build Hierarchy from Path Attribute,
+and export the frame range. Two silent traps:
+
+- Material slot names come from the name of the material node that
+  `shop_materialpath` points to, not from `fbx_material_name`. Create one
+  placeholder material node per intended slot, named exactly like the slot.
+- Open polylines inside a packed piece (fracture tools can emit two-point
+  lines) are split into a `<piece>_polyline0` node that receives the animation
+  while the mesh node stays static. Blast `@intrinsic:closed==0` before packing.
+
+`inspect_fbx` catches both: it lists the material names, curve-only nodes, and
+mesh nodes that stay static in an animated file.
+
+### Interior faces need their own UVs
+
+Fracture interiors inherit interpolated or projected UVs that are rarely
+usable. Check them with `uv_quality_report` on the inside group: a planar or
+box projection written with a wrong component can collapse every interior
+face to a line. A robust default is UV Unwrap plus UV Flatten on the inside
+group, then scale each piece's interior UVs so UV area matches 3D area times
+the wanted tiles per unit. Give interiors their own material slot, and drop
+source tangents so the engine recomputes them for the cut faces.
 
 ## 7. Axis, units, world space, and retime tail
 
@@ -337,8 +405,11 @@ exports multiple glTF 2.0 animation clips; the FBX character ROP adds
 rejects joint scale. The `/out` glTF ROP type is now `gltf` / `gltf::2.0`
 (`rop_gltf` is invalid there).
 
-Then reimport the final Binary FBX with `kinefx::fbxcharacterimport` into a
-temporary validation network and check:
+`inspect_fbx` re-imports the final file at object level, reports the key
+range, materials, static and curve-only nodes, and compares every piece's
+world position with the unpacked source SOP by name. For a character-style
+check, also reimport the final Binary FBX with `kinefx::fbxcharacterimport`
+into a temporary validation network and check:
 
 - one root plus one joint per piece;
 - unique joint names and stable hierarchy;

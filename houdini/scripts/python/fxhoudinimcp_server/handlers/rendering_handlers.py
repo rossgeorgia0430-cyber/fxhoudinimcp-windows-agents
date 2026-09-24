@@ -909,11 +909,20 @@ def render_rop(
 
 ###### rendering.start_render_job
 
-def _worker_script_path() -> str:
-    """Return the absolute path to the standalone _render_worker.py script."""
-    return os.path.normpath(
-        os.path.join(os.path.dirname(__file__), os.pardir, "_render_worker.py")
-    )
+def _worker_script_path(name: str = "_render_worker.py") -> str:
+    """Return the absolute path to a standalone worker script of this package."""
+    return os.path.normpath(os.path.join(os.path.dirname(__file__), os.pardir, name))
+
+
+def _hython_path() -> str:
+    """Return the hython executable of the running Houdini installation."""
+    hfs = hou.expandString("$HFS")
+    hython = os.path.join(hfs, "bin", "hython.exe")
+    if not os.path.isfile(hython):
+        # Non-Windows fallback; primary target is Windows hython.exe.
+        alt = os.path.join(hfs, "bin", "hython")
+        hython = alt if os.path.isfile(alt) else hython
+    return hython
 
 
 def _job_dir() -> str:
@@ -966,13 +975,7 @@ def start_render_job(
     if node is None:
         raise ValueError(f"Node not found: {node_path}")
 
-    hfs = hou.expandString("$HFS")
-    hython = os.path.join(hfs, "bin", "hython.exe")
-    if not os.path.isfile(hython):
-        # Non-Windows fallback; primary target is Windows hython.exe.
-        alt = os.path.join(hfs, "bin", "hython")
-        hython = alt if os.path.isfile(alt) else hython
-
+    hython = _hython_path()
     worker = _worker_script_path()
     if not os.path.isfile(worker):
         raise RuntimeError(f"Render worker script not found: {worker}")

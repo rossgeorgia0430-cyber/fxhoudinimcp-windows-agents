@@ -231,7 +231,9 @@ async def flipbook(
     Unlike capture_screenshot (one frame), this records a whole range and
     returns only metadata, not image bytes. Long ranges cook every frame, so a
     huge range may exceed the command timeout — lower the resolution, raise
-    frame_increment, or shorten the range for a quick rough preview.
+    frame_increment, or shorten the range for a quick rough preview. With an
+    output_path the result lists frames whose file was not written
+    (missing_frames); review a written sequence with make_contact_sheet.
 
     Args:
         output_path: Destination. Empty → MPlay only. An image sequence needs a

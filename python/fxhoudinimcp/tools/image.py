@@ -3,17 +3,19 @@
 Each tool delegates to the corresponding handler running inside Houdini via
 the HTTP bridge. The handlers use OpenImageIO (which ships inside Houdini's
 Python) to inspect rendered images, VAT textures, and EXRs without
-hand-written execute_python. These tools return statistics dicts; they do not
-attach inline image content.
+hand-written execute_python. The inspection tools return statistics dicts;
+``make_contact_sheet`` also attaches a downscaled preview of the sheet it writes.
 """
 
 from __future__ import annotations
 
 # Third-party
 from mcp.server.fastmcp import Context
+from mcp.types import ImageContent, TextContent
 
 # Internal
 from fxhoudinimcp.server import _get_bridge, mcp
+from fxhoudinimcp.tools import result_with_image
 
 
 @mcp.tool()
@@ -69,3 +71,32 @@ async def image_region_stats(
         "image.image_region_stats",
         {"path": path, "x": x, "y": y, "width": width, "height": height},
     )
+
+
+@mcp.tool()
+async def make_contact_sheet(
+    ctx: Context,
+    images: list[str],
+    output_path: str,
+    columns: int = 4,
+    tile_width: int | None = None,
+) -> list[TextContent | ImageContent]:
+    """Tile several images into one contact sheet and show it inline.
+
+    Tiles run left-to-right then top-to-bottom, each resized to the first
+    image's aspect ratio at ``tile_width`` (default: its own width). Use it to
+    review a flipbook sequence or a set of renders in one picture; the inline
+    preview is downscaled, the written file keeps full size.
+
+    Args:
+        images: Image paths, as seen by the Houdini session.
+        output_path: Sheet file to write, e.g. ".../sheet.jpg".
+        columns: Tiles per row.
+        tile_width: Tile width in pixels.
+    """
+    bridge = _get_bridge(ctx)
+    params: dict = {"images": images, "output_path": output_path, "columns": columns}
+    if tile_width is not None:
+        params["tile_width"] = tile_width
+    result = await bridge.execute("image.make_contact_sheet", params)
+    return result_with_image(result)

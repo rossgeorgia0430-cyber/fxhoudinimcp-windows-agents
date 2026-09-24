@@ -15,13 +15,19 @@ or Houdini handlers. Report the exact commands and outcomes.
 ## Houdini work style
 
 Use scene inspection, node discovery/card lookup, graph dry-run, graph build,
-verification, and visual capture as the normal sequence. Preserve all 211 MCP
-tools in this fork (the catalog grew from 180 with the render/image/geometry
-verification additions, then +4 with the `vat` module, then +1 with the
-viewport `flipbook`/playblast tool, then +5 with geometry/export diagnostics;
-the `image`, `vat`, and `diagnostics`
-modules join the `core` profile and the render helpers surface in `core` via
-`_PROFILE_EXTRA_TOOLS`). Prefer typed, native tool contracts over opaque JSON.
+verification, and visual capture as the normal sequence. Preserve all 219 MCP
+tools in this fork; the `image`, `vat`, and `diagnostics` modules join the
+`core` profile and the render helpers surface in `core` via
+`_PROFILE_EXTRA_TOOLS`. Prefer typed, native tool contracts over opaque JSON.
+
+The Houdini-side diagnostics are split by responsibility:
+`diagnostics_handlers.py` (chain counts, profiles, SOP diffs, shared helpers),
+`alembic_diagnostics_handlers.py`, `mesh_diagnostics_handlers.py` (topology,
+UVs, ray casts), `motion_diagnostics_handlers.py` (name-keyed tracking and
+rigid-body statistics), and `file_inspection_handlers.py` (FBX re-import and
+out-of-process HIP reading through `_hip_inspect_worker.py`). Handlers that
+step frames restore the caller's frame; `inspect_fbx` imports into a temporary
+subnet it deletes, which leaves the scene marked modified.
 
 The `vat` module (`tools/vat.py` + `handlers/vat_handlers.py`) turns the
 hand-written scripts of the SideFX Labs VAT -> UE smooth-normal workflow into

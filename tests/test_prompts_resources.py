@@ -88,9 +88,11 @@ class TestPromptTemplates:
     def test_cinematic_rbd_prompt_keeps_delivery_invariants(self):
         text = cinematic_rbd_fracture_pipeline()
         assert "If `pscale` or `scale` attributes exist" in text
-        assert "edge incidence and connected components" in text
+        assert "`mesh_topology_report` proves" in text
         assert "compare flattened element arrays" in text
         assert "fbx_material_name" in text
+        assert "Freeze the solver's input at the start frame" in text
+        assert "`<piece>_polyline0`" in text
         assert "kinefx::fbxcharacterimport" in text
         assert "real tail frames" in text
 

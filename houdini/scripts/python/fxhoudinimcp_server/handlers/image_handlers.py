@@ -1,8 +1,9 @@
 """Image inspection handlers for FXHoudini-MCP.
 
 Provides read-only inspection of rendered images, VAT textures, and EXRs
-(dimensions, channels, per-channel statistics, and pixel sampling) using
-OpenImageIO, which ships inside Houdini's Python. OpenImageIO is imported
+(dimensions, channels, per-channel statistics, and pixel sampling), and tiles
+image sequences into contact sheets, using OpenImageIO, which ships inside
+Houdini's Python. OpenImageIO is imported
 lazily inside each handler so this module imports cleanly even when OIIO is
 unavailable in a given Houdini build.
 """
@@ -11,6 +12,7 @@ from __future__ import annotations
 
 # Built-in
 import logging
+import math
 import os
 
 # Internal
@@ -252,8 +254,75 @@ def image_region_stats(
     }
 
 
+###### image.make_contact_sheet
+
+def make_contact_sheet(
+    images: list, output_path: str, columns: int = 4, tile_width: int = None
+) -> dict:
+    """Tile images row-major into one sheet and return a downscaled preview.
+
+    Every tile is resized to the first image's aspect ratio at ``tile_width``
+    (default: the first image's own width) and written as RGB, so one call
+    turns a flipbook sequence into a single reviewable picture.
+
+    Args:
+        images: Image paths, tiled left-to-right then top-to-bottom.
+        output_path: Sheet file to write (format from the extension).
+        columns: Tiles per row.
+        tile_width: Tile width in pixels.
+
+    Returns:
+        A dict with the sheet path and layout plus ``image_base64`` /
+        ``mime_type`` for an inline preview.
+    """
+    if not images:
+        raise ValueError("images must not be empty")
+    if columns < 1:
+        raise ValueError(f"columns must be at least 1, got {columns}")
+    for path in images:
+        if not os.path.isfile(path):
+            raise FileNotFoundError(path)
+
+    oiio = _oiio()
+    from OpenImageIO import ROI, ImageBuf, ImageBufAlgo, ImageSpec
+
+    # Lazy: the viewport module needs hou, which this module avoids at import.
+    from fxhoudinimcp_server.handlers.viewport_handlers import _downscale_and_encode
+
+    first = ImageBuf(images[0]).spec()
+    width = int(tile_width) if tile_width else first.width
+    height = max(1, round(first.height * width / first.width))
+    rows = math.ceil(len(images) / columns)
+    sheet = ImageBuf(ImageSpec(width * columns, height * rows, 3, oiio.UINT8))
+    ImageBufAlgo.zero(sheet)
+    for index, path in enumerate(images):
+        source = ImageBuf(path)
+        order = (0, 1, 2) if source.spec().nchannels >= 3 else (0, 0, 0)
+        tile = ImageBufAlgo.resize(
+            ImageBufAlgo.channels(source, order), roi=ROI(0, width, 0, height, 0, 1, 0, 3)
+        )
+        ImageBufAlgo.paste(sheet, (index % columns) * width, (index // columns) * height, 0, 0, tile)
+
+    out_dir = os.path.dirname(output_path)
+    if out_dir:
+        os.makedirs(out_dir, exist_ok=True)
+    if not sheet.write(output_path):
+        raise ValueError(f"Could not write contact sheet '{output_path}': {sheet.geterror()}")
+    image_base64, mime_type = _downscale_and_encode(output_path)
+    return {
+        "output_path": output_path,
+        "images": len(images),
+        "columns": columns,
+        "rows": rows,
+        "tile_size": [width, height],
+        "image_base64": image_base64,
+        "mime_type": mime_type,
+    }
+
+
 ###### Registration
 
 register_handler("image.inspect_image", inspect_image)
 register_handler("image.sample_image", sample_image)
 register_handler("image.image_region_stats", image_region_stats)
+register_handler("image.make_contact_sheet", make_contact_sheet)

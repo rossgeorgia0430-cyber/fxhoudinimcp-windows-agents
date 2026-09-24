@@ -34,6 +34,18 @@ def _get_sop_geo(node_path: str) -> hou.Geometry:
     return geo
 
 
+def _percentile(sorted_values: list[float], fraction: float) -> float | None:
+    """Nearest-rank percentile of an ascending list; None when it is empty."""
+    if not sorted_values:
+        return None
+    return sorted_values[int(round(fraction * (len(sorted_values) - 1)))]
+
+
+def _rounded(values: Any, ndigits: int = 6) -> list[float]:
+    """Round a vector-like sequence into a JSON list."""
+    return [round(float(value), ndigits) for value in values]
+
+
 def _find_attrib_by_class(geo: hou.Geometry, attrib_name: str, attrib_class: str) -> hou.Attrib:
     """Find an attribute for the given class ("point"/"prim"/"vertex").
 
