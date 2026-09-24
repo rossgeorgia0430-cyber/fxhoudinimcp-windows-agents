@@ -2110,6 +2110,17 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#fixed" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Fixed
+      
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -2195,7 +2206,7 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#fixed" class="md-nav__link">
+  <a href="#fixed_1" class="md-nav__link">
     <span class="md-ellipsis">
       
         Fixed
@@ -2440,6 +2451,17 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#fixed" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Fixed
+      
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -2525,7 +2547,7 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#fixed" class="md-nav__link">
+  <a href="#fixed_1" class="md-nav__link">
     <span class="md-ellipsis">
       
         Fixed
@@ -2760,6 +2782,12 @@ and this project adheres to <a href="https://semver.org/spec/v2.0.0.html">Semant
 <li>H22 hasattr fast paths: ImageLayer/NanoVDB/Volume <code>computeMin/Max/Average</code>, geometry <code>*ListAttribValues</code> for array attributes. <code>create_render_node("rop_gltf")</code> maps to H22 <code>gltf</code>/<code>gltf::2.0</code>. usdrender/karma pin current-frame when <code>trange==0</code> so H22 husk cannot expand to the whole USD range.</li>
 <li>New prompt <code>golden_fluid_pipeline</code>: playbook for curve-guided FLIP effects delivered to UE (PTF frames, unbend/loop/rebend tube-space math, quintic seamless loop, form-preserving mesh-space shape knobs, velocity recomputation for UE motion vectors, shader-channel contract, guarded Alembic export, VAT spatial-atlas baking for Niagara). Distilled from the shot46 golden-fluid production (Houdini 21 + UE 5.7).</li>
 <li>New prompt <code>cinematic_rbd_fracture_pipeline</code>: reusable thin-shell fracture, coherent Bullet motion, localized artist CTRL, material-preserving packed RBD-to-FBX, real retime tails, and FBX metadata/reimport acceptance gates for Unreal delivery.</li>
+<li>Eight diagnostics tools (catalog now 219): <code>mesh_topology_report</code> (closedness, components, open curves, volume, per piece), <code>uv_quality_report</code> (collapsed/flipped UVs and texel-scale spread per group), <code>ray_intersect</code> (explicit or grid rays, coverage holes), <code>track_named_elements</code> (name-keyed multi-frame sampling with bounds), <code>rbd_motion_stats</code> (spread, speed, spin, rebound, penetration, settle frame), <code>inspect_fbx</code> (re-import audit with name-matched comparison to the source SOP), <code>inspect_hip_file</code> (another HIP read in a separate hython), and <code>make_contact_sheet</code> (tiled image review with inline preview).</li>
+<li><code>cinematic_rbd_fracture_pipeline</code> prompt: handing an animated solid over to Bullet at contact (frozen solver input, start-frame rest pose, gravity scaled to the animation's time compression, one-time impact burst with a speed cap), interior UVs, and the SOP FBX ROP pitfalls (material slot names, open polylines taking a piece's animation).</li>
+</ul>
+<h3 id="fixed">Fixed<a class="headerlink" href="#fixed" title="Permanent link">&para;</a></h3>
+<ul>
+<li><code>flipbook</code> kept expanding <code>$F4</code> in <code>output_path</code> to the current frame, so an image sequence overwrote a single file; frame tokens now reach the flipbook unexpanded and missing frames are reported.</li>
 </ul>
 <h2 id="v130-2026-06-11"><a href="https://github.com/healkeiser/fxhoudinimcp/compare/v1.2.0...v1.3.0">v1.3.0</a> - 2026-06-11<a class="headerlink" href="#v130-2026-06-11" title="Permanent link">&para;</a></h2>
 <h3 id="commits">Commits<a class="headerlink" href="#commits" title="Permanent link">&para;</a></h3>
@@ -2785,7 +2813,7 @@ and this project adheres to <a href="https://semver.org/spec/v2.0.0.html">Semant
 <li>Fix untyped tool parameter schemas rejected by strict MCP clients <a href="https://github.com/healkeiser/fxhoudinimcp/pull/4"><code>#4</code></a></li>
 <li>Harden Houdini MCP startup health checks <a href="https://github.com/healkeiser/fxhoudinimcp/pull/3"><code>#3</code></a></li>
 </ul>
-<h3 id="fixed">Fixed<a class="headerlink" href="#fixed" title="Permanent link">&para;</a></h3>
+<h3 id="fixed_1">Fixed<a class="headerlink" href="#fixed_1" title="Permanent link">&para;</a></h3>
 <ul>
 <li>Make automatic node layout a toggle via FXHOUDINIMCP_AUTO_LAYOUT <a href="https://github.com/healkeiser/fxhoudinimcp/issues/2"><code>#2</code></a></li>
 <li>Fix untyped tool parameter schemas rejected by strict MCP clients <a href="https://github.com/healkeiser/fxhoudinimcp/issues/1"><code>#1</code></a></li>

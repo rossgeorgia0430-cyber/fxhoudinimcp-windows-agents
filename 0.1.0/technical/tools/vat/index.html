@@ -3702,25 +3702,25 @@ bridge; the handlers use OpenImageIO + numpy (both ship in Houdini's Python).</p
 <a href="#fxhoudinimcp.tools.vat.bake_attribute_to_spatial_atlas" class="headerlink" title="Permanent link">&para;</a></h4>
 <div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">bake_attribute_to_spatial_atlas</span><span class="p">(</span>
 <a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    <span class="n"><span title="fxhoudinimcp.tools.vat.bake_attribute_to_spatial_atlas(ctx)">ctx</span></span><span class="p">:</span> <span class="n"><span title="mcp.server.fastmcp.Context">Context</span></span><span class="p">,</span>
-<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>    <span class="n"><a class="autorefs autorefs-internal" title="&lt;code&gt;node_path&lt;/code&gt; (&lt;code&gt;fxhoudinimcp.tools.vat.bake_attribute_to_spatial_atlas(node_path)&lt;/code&gt;)" href="#fxhoudinimcp.tools.vat.bake_attribute_to_spatial_atlas(node_path)">node_path</a></span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></span><span class="p">,</span>
-<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>    <span class="n"><a class="autorefs autorefs-internal" title="&lt;code&gt;out_path&lt;/code&gt; (&lt;code&gt;fxhoudinimcp.tools.vat.bake_attribute_to_spatial_atlas(out_path)&lt;/code&gt;)" href="#fxhoudinimcp.tools.vat.bake_attribute_to_spatial_atlas(out_path)">out_path</a></span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></span><span class="p">,</span>
-<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>    <span class="n"><a class="autorefs autorefs-internal" title="&lt;code&gt;grid_cols&lt;/code&gt; (&lt;code&gt;fxhoudinimcp.tools.vat.bake_attribute_to_spatial_atlas(grid_cols)&lt;/code&gt;)" href="#fxhoudinimcp.tools.vat.bake_attribute_to_spatial_atlas(grid_cols)">grid_cols</a></span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#int">int</a></span><span class="p">,</span>
-<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>    <span class="n"><a class="autorefs autorefs-internal" title="&lt;code&gt;grid_rows&lt;/code&gt; (&lt;code&gt;fxhoudinimcp.tools.vat.bake_attribute_to_spatial_atlas(grid_rows)&lt;/code&gt;)" href="#fxhoudinimcp.tools.vat.bake_attribute_to_spatial_atlas(grid_rows)">grid_rows</a></span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#int">int</a></span><span class="p">,</span>
-<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>    <span class="n"><a class="autorefs autorefs-internal" title="&lt;code&gt;frames&lt;/code&gt; (&lt;code&gt;fxhoudinimcp.tools.vat.bake_attribute_to_spatial_atlas(frames)&lt;/code&gt;)" href="#fxhoudinimcp.tools.vat.bake_attribute_to_spatial_atlas(frames)">frames</a></span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#list">list</a></span><span class="p">[</span><span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#float">float</a></span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>    <span class="n"><a class="autorefs autorefs-internal" title="&lt;code&gt;attrib_name&lt;/code&gt; (&lt;code&gt;fxhoudinimcp.tools.vat.bake_attribute_to_spatial_atlas(attrib_name)&lt;/code&gt;)" href="#fxhoudinimcp.tools.vat.bake_attribute_to_spatial_atlas(attrib_name)">attrib_name</a></span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></span> <span class="o">=</span> <span class="s2">&quot;N&quot;</span><span class="p">,</span>
-<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>    <span class="n"><a class="autorefs autorefs-internal" title="&lt;code&gt;index_mode&lt;/code&gt; (&lt;code&gt;fxhoudinimcp.tools.vat.bake_attribute_to_spatial_atlas(index_mode)&lt;/code&gt;)" href="#fxhoudinimcp.tools.vat.bake_attribute_to_spatial_atlas(index_mode)">index_mode</a></span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></span> <span class="o">=</span> <span class="s2">&quot;ptnum&quot;</span><span class="p">,</span>
-<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>    <span class="n"><a class="autorefs autorefs-internal" title="&lt;code&gt;encode&lt;/code&gt; (&lt;code&gt;fxhoudinimcp.tools.vat.bake_attribute_to_spatial_atlas(encode)&lt;/code&gt;)" href="#fxhoudinimcp.tools.vat.bake_attribute_to_spatial_atlas(encode)">encode</a></span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></span> <span class="o">=</span> <span class="s2">&quot;normal_halfunit&quot;</span><span class="p">,</span>
-<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>    <span class="n"><a class="autorefs autorefs-internal" title="&lt;code&gt;components&lt;/code&gt; (&lt;code&gt;fxhoudinimcp.tools.vat.bake_attribute_to_spatial_atlas(components)&lt;/code&gt;)" href="#fxhoudinimcp.tools.vat.bake_attribute_to_spatial_atlas(components)">components</a></span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#list">list</a></span><span class="p">[</span><span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#int">int</a></span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>    <span class="n"><a class="autorefs autorefs-internal" title="&lt;code&gt;tiles_x&lt;/code&gt; (&lt;code&gt;fxhoudinimcp.tools.vat.bake_attribute_to_spatial_atlas(tiles_x)&lt;/code&gt;)" href="#fxhoudinimcp.tools.vat.bake_attribute_to_spatial_atlas(tiles_x)">tiles_x</a></span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#int">int</a></span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-<a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>    <span class="n"><a class="autorefs autorefs-internal" title="&lt;code&gt;tiles_y&lt;/code&gt; (&lt;code&gt;fxhoudinimcp.tools.vat.bake_attribute_to_spatial_atlas(tiles_y)&lt;/code&gt;)" href="#fxhoudinimcp.tools.vat.bake_attribute_to_spatial_atlas(tiles_y)">tiles_y</a></span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#int">int</a></span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-<a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>    <span class="n"><a class="autorefs autorefs-internal" title="&lt;code&gt;pad&lt;/code&gt; (&lt;code&gt;fxhoudinimcp.tools.vat.bake_attribute_to_spatial_atlas(pad)&lt;/code&gt;)" href="#fxhoudinimcp.tools.vat.bake_attribute_to_spatial_atlas(pad)">pad</a></span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#int">int</a></span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
-<a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>    <span class="n"><a class="autorefs autorefs-internal" title="&lt;code&gt;flip_v&lt;/code&gt; (&lt;code&gt;fxhoudinimcp.tools.vat.bake_attribute_to_spatial_atlas(flip_v)&lt;/code&gt;)" href="#fxhoudinimcp.tools.vat.bake_attribute_to_spatial_atlas(flip_v)">flip_v</a></span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#bool">bool</a></span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
-<a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a>    <span class="n"><a class="autorefs autorefs-internal" title="&lt;code&gt;axis_convert&lt;/code&gt; (&lt;code&gt;fxhoudinimcp.tools.vat.bake_attribute_to_spatial_atlas(axis_convert)&lt;/code&gt;)" href="#fxhoudinimcp.tools.vat.bake_attribute_to_spatial_atlas(axis_convert)">axis_convert</a></span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#bool">bool</a></span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
-<a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a>    <span class="n"><a class="autorefs autorefs-internal" title="&lt;code&gt;normal_x_sign&lt;/code&gt; (&lt;code&gt;fxhoudinimcp.tools.vat.bake_attribute_to_spatial_atlas(normal_x_sign)&lt;/code&gt;)" href="#fxhoudinimcp.tools.vat.bake_attribute_to_spatial_atlas(normal_x_sign)">normal_x_sign</a></span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#float">float</a></span> <span class="o">=</span> <span class="mf">1.0</span><span class="p">,</span>
-<a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a>    <span class="n"><a class="autorefs autorefs-internal" title="&lt;code&gt;normal_y_sign&lt;/code&gt; (&lt;code&gt;fxhoudinimcp.tools.vat.bake_attribute_to_spatial_atlas(normal_y_sign)&lt;/code&gt;)" href="#fxhoudinimcp.tools.vat.bake_attribute_to_spatial_atlas(normal_y_sign)">normal_y_sign</a></span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#float">float</a></span> <span class="o">=</span> <span class="mf">1.0</span><span class="p">,</span>
-<a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a>    <span class="n"><a class="autorefs autorefs-internal" title="&lt;code&gt;compression&lt;/code&gt; (&lt;code&gt;fxhoudinimcp.tools.vat.bake_attribute_to_spatial_atlas(compression)&lt;/code&gt;)" href="#fxhoudinimcp.tools.vat.bake_attribute_to_spatial_atlas(compression)">compression</a></span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></span> <span class="o">=</span> <span class="s2">&quot;zip&quot;</span><span class="p">,</span>
-<a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a>    <span class="n"><a class="autorefs autorefs-internal" title="&lt;code&gt;timeout&lt;/code&gt; (&lt;code&gt;fxhoudinimcp.tools.vat.bake_attribute_to_spatial_atlas(timeout)&lt;/code&gt;)" href="#fxhoudinimcp.tools.vat.bake_attribute_to_spatial_atlas(timeout)">timeout</a></span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#float">float</a></span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-<a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#dict">dict</a></span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>    <span class="n"><a class="autorefs autorefs-internal" title="&lt;code&gt;node_path&lt;/code&gt; (&lt;code&gt;fxhoudinimcp.tools.vat.bake_attribute_to_spatial_atlas(node_path)&lt;/code&gt;)" href="#fxhoudinimcp.tools.vat.bake_attribute_to_spatial_atlas(node_path)">node_path</a></span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/stdtypes.html#str">str</a></span><span class="p">,</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>    <span class="n"><a class="autorefs autorefs-internal" title="&lt;code&gt;out_path&lt;/code&gt; (&lt;code&gt;fxhoudinimcp.tools.vat.bake_attribute_to_spatial_atlas(out_path)&lt;/code&gt;)" href="#fxhoudinimcp.tools.vat.bake_attribute_to_spatial_atlas(out_path)">out_path</a></span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/stdtypes.html#str">str</a></span><span class="p">,</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>    <span class="n"><a class="autorefs autorefs-internal" title="&lt;code&gt;grid_cols&lt;/code&gt; (&lt;code&gt;fxhoudinimcp.tools.vat.bake_attribute_to_spatial_atlas(grid_cols)&lt;/code&gt;)" href="#fxhoudinimcp.tools.vat.bake_attribute_to_spatial_atlas(grid_cols)">grid_cols</a></span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/functions.html#int">int</a></span><span class="p">,</span>
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>    <span class="n"><a class="autorefs autorefs-internal" title="&lt;code&gt;grid_rows&lt;/code&gt; (&lt;code&gt;fxhoudinimcp.tools.vat.bake_attribute_to_spatial_atlas(grid_rows)&lt;/code&gt;)" href="#fxhoudinimcp.tools.vat.bake_attribute_to_spatial_atlas(grid_rows)">grid_rows</a></span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/functions.html#int">int</a></span><span class="p">,</span>
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>    <span class="n"><a class="autorefs autorefs-internal" title="&lt;code&gt;frames&lt;/code&gt; (&lt;code&gt;fxhoudinimcp.tools.vat.bake_attribute_to_spatial_atlas(frames)&lt;/code&gt;)" href="#fxhoudinimcp.tools.vat.bake_attribute_to_spatial_atlas(frames)">frames</a></span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/stdtypes.html#list">list</a></span><span class="p">[</span><span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/functions.html#float">float</a></span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>    <span class="n"><a class="autorefs autorefs-internal" title="&lt;code&gt;attrib_name&lt;/code&gt; (&lt;code&gt;fxhoudinimcp.tools.vat.bake_attribute_to_spatial_atlas(attrib_name)&lt;/code&gt;)" href="#fxhoudinimcp.tools.vat.bake_attribute_to_spatial_atlas(attrib_name)">attrib_name</a></span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/stdtypes.html#str">str</a></span> <span class="o">=</span> <span class="s2">"N"</span><span class="p">,</span>
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>    <span class="n"><a class="autorefs autorefs-internal" title="&lt;code&gt;index_mode&lt;/code&gt; (&lt;code&gt;fxhoudinimcp.tools.vat.bake_attribute_to_spatial_atlas(index_mode)&lt;/code&gt;)" href="#fxhoudinimcp.tools.vat.bake_attribute_to_spatial_atlas(index_mode)">index_mode</a></span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/stdtypes.html#str">str</a></span> <span class="o">=</span> <span class="s2">"ptnum"</span><span class="p">,</span>
+<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>    <span class="n"><a class="autorefs autorefs-internal" title="&lt;code&gt;encode&lt;/code&gt; (&lt;code&gt;fxhoudinimcp.tools.vat.bake_attribute_to_spatial_atlas(encode)&lt;/code&gt;)" href="#fxhoudinimcp.tools.vat.bake_attribute_to_spatial_atlas(encode)">encode</a></span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/stdtypes.html#str">str</a></span> <span class="o">=</span> <span class="s2">"normal_halfunit"</span><span class="p">,</span>
+<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>    <span class="n"><a class="autorefs autorefs-internal" title="&lt;code&gt;components&lt;/code&gt; (&lt;code&gt;fxhoudinimcp.tools.vat.bake_attribute_to_spatial_atlas(components)&lt;/code&gt;)" href="#fxhoudinimcp.tools.vat.bake_attribute_to_spatial_atlas(components)">components</a></span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/stdtypes.html#list">list</a></span><span class="p">[</span><span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/functions.html#int">int</a></span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>    <span class="n"><a class="autorefs autorefs-internal" title="&lt;code&gt;tiles_x&lt;/code&gt; (&lt;code&gt;fxhoudinimcp.tools.vat.bake_attribute_to_spatial_atlas(tiles_x)&lt;/code&gt;)" href="#fxhoudinimcp.tools.vat.bake_attribute_to_spatial_atlas(tiles_x)">tiles_x</a></span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/functions.html#int">int</a></span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>    <span class="n"><a class="autorefs autorefs-internal" title="&lt;code&gt;tiles_y&lt;/code&gt; (&lt;code&gt;fxhoudinimcp.tools.vat.bake_attribute_to_spatial_atlas(tiles_y)&lt;/code&gt;)" href="#fxhoudinimcp.tools.vat.bake_attribute_to_spatial_atlas(tiles_y)">tiles_y</a></span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/functions.html#int">int</a></span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>    <span class="n"><a class="autorefs autorefs-internal" title="&lt;code&gt;pad&lt;/code&gt; (&lt;code&gt;fxhoudinimcp.tools.vat.bake_attribute_to_spatial_atlas(pad)&lt;/code&gt;)" href="#fxhoudinimcp.tools.vat.bake_attribute_to_spatial_atlas(pad)">pad</a></span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/functions.html#int">int</a></span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+<a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>    <span class="n"><a class="autorefs autorefs-internal" title="&lt;code&gt;flip_v&lt;/code&gt; (&lt;code&gt;fxhoudinimcp.tools.vat.bake_attribute_to_spatial_atlas(flip_v)&lt;/code&gt;)" href="#fxhoudinimcp.tools.vat.bake_attribute_to_spatial_atlas(flip_v)">flip_v</a></span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/functions.html#bool">bool</a></span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+<a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a>    <span class="n"><a class="autorefs autorefs-internal" title="&lt;code&gt;axis_convert&lt;/code&gt; (&lt;code&gt;fxhoudinimcp.tools.vat.bake_attribute_to_spatial_atlas(axis_convert)&lt;/code&gt;)" href="#fxhoudinimcp.tools.vat.bake_attribute_to_spatial_atlas(axis_convert)">axis_convert</a></span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/functions.html#bool">bool</a></span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+<a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a>    <span class="n"><a class="autorefs autorefs-internal" title="&lt;code&gt;normal_x_sign&lt;/code&gt; (&lt;code&gt;fxhoudinimcp.tools.vat.bake_attribute_to_spatial_atlas(normal_x_sign)&lt;/code&gt;)" href="#fxhoudinimcp.tools.vat.bake_attribute_to_spatial_atlas(normal_x_sign)">normal_x_sign</a></span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/functions.html#float">float</a></span> <span class="o">=</span> <span class="mf">1.0</span><span class="p">,</span>
+<a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a>    <span class="n"><a class="autorefs autorefs-internal" title="&lt;code&gt;normal_y_sign&lt;/code&gt; (&lt;code&gt;fxhoudinimcp.tools.vat.bake_attribute_to_spatial_atlas(normal_y_sign)&lt;/code&gt;)" href="#fxhoudinimcp.tools.vat.bake_attribute_to_spatial_atlas(normal_y_sign)">normal_y_sign</a></span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/functions.html#float">float</a></span> <span class="o">=</span> <span class="mf">1.0</span><span class="p">,</span>
+<a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a>    <span class="n"><a class="autorefs autorefs-internal" title="&lt;code&gt;compression&lt;/code&gt; (&lt;code&gt;fxhoudinimcp.tools.vat.bake_attribute_to_spatial_atlas(compression)&lt;/code&gt;)" href="#fxhoudinimcp.tools.vat.bake_attribute_to_spatial_atlas(compression)">compression</a></span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/stdtypes.html#str">str</a></span> <span class="o">=</span> <span class="s2">"zip"</span><span class="p">,</span>
+<a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a>    <span class="n"><a class="autorefs autorefs-internal" title="&lt;code&gt;timeout&lt;/code&gt; (&lt;code&gt;fxhoudinimcp.tools.vat.bake_attribute_to_spatial_atlas(timeout)&lt;/code&gt;)" href="#fxhoudinimcp.tools.vat.bake_attribute_to_spatial_atlas(timeout)">timeout</a></span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/functions.html#float">float</a></span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/stdtypes.html#dict">dict</a></span>
 </code></pre></div>
 
     <div class="doc doc-contents ">
@@ -3772,7 +3772,7 @@ toward viewer) to UE local (X right, Z up, Y toward viewer) before encoding;
 <h5 id="fxhoudinimcp.tools.vat.bake_attribute_to_spatial_atlas(node_path)" class="doc doc-heading doc-heading-parameter">                  <code>node_path</code>
 <a href="#fxhoudinimcp.tools.vat.bake_attribute_to_spatial_atlas(node_path)" class="headerlink" title="Permanent link">&para;</a></h5>            </td>
             <td>
-                  <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></code>
+                  <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/stdtypes.html#str">str</a></code>
             </td>
             <td>
               <div class="doc-md-description">
@@ -3788,7 +3788,7 @@ toward viewer) to UE local (X right, Z up, Y toward viewer) before encoding;
 <h5 id="fxhoudinimcp.tools.vat.bake_attribute_to_spatial_atlas(out_path)" class="doc doc-heading doc-heading-parameter">                  <code>out_path</code>
 <a href="#fxhoudinimcp.tools.vat.bake_attribute_to_spatial_atlas(out_path)" class="headerlink" title="Permanent link">&para;</a></h5>            </td>
             <td>
-                  <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></code>
+                  <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/stdtypes.html#str">str</a></code>
             </td>
             <td>
               <div class="doc-md-description">
@@ -3805,7 +3805,7 @@ parent directory is created automatically.</p>
 <h5 id="fxhoudinimcp.tools.vat.bake_attribute_to_spatial_atlas(grid_cols)" class="doc doc-heading doc-heading-parameter">                  <code>grid_cols</code>
 <a href="#fxhoudinimcp.tools.vat.bake_attribute_to_spatial_atlas(grid_cols)" class="headerlink" title="Permanent link">&para;</a></h5>            </td>
             <td>
-                  <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#int">int</a></code>
+                  <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/functions.html#int">int</a></code>
             </td>
             <td>
               <div class="doc-md-description">
@@ -3821,7 +3821,7 @@ parent directory is created automatically.</p>
 <h5 id="fxhoudinimcp.tools.vat.bake_attribute_to_spatial_atlas(grid_rows)" class="doc doc-heading doc-heading-parameter">                  <code>grid_rows</code>
 <a href="#fxhoudinimcp.tools.vat.bake_attribute_to_spatial_atlas(grid_rows)" class="headerlink" title="Permanent link">&para;</a></h5>            </td>
             <td>
-                  <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#int">int</a></code>
+                  <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/functions.html#int">int</a></code>
             </td>
             <td>
               <div class="doc-md-description">
@@ -3837,7 +3837,7 @@ parent directory is created automatically.</p>
 <h5 id="fxhoudinimcp.tools.vat.bake_attribute_to_spatial_atlas(frames)" class="doc doc-heading doc-heading-parameter">                  <code>frames</code>
 <a href="#fxhoudinimcp.tools.vat.bake_attribute_to_spatial_atlas(frames)" class="headerlink" title="Permanent link">&para;</a></h5>            </td>
             <td>
-                  <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#list">list</a>[<a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#float">float</a>] | None</code>
+                  <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/stdtypes.html#list">list</a>[<a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/functions.html#float">float</a>] | None</code>
             </td>
             <td>
               <div class="doc-md-description">
@@ -3855,7 +3855,7 @@ stepped range. Explicit list of floats → used as-is.</p>
 <h5 id="fxhoudinimcp.tools.vat.bake_attribute_to_spatial_atlas(attrib_name)" class="doc doc-heading doc-heading-parameter">                  <code>attrib_name</code>
 <a href="#fxhoudinimcp.tools.vat.bake_attribute_to_spatial_atlas(attrib_name)" class="headerlink" title="Permanent link">&para;</a></h5>            </td>
             <td>
-                  <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></code>
+                  <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/stdtypes.html#str">str</a></code>
             </td>
             <td>
               <div class="doc-md-description">
@@ -3871,7 +3871,7 @@ stepped range. Explicit list of floats → used as-is.</p>
 <h5 id="fxhoudinimcp.tools.vat.bake_attribute_to_spatial_atlas(index_mode)" class="doc doc-heading doc-heading-parameter">                  <code>index_mode</code>
 <a href="#fxhoudinimcp.tools.vat.bake_attribute_to_spatial_atlas(index_mode)" class="headerlink" title="Permanent link">&para;</a></h5>            </td>
             <td>
-                  <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></code>
+                  <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/stdtypes.html#str">str</a></code>
             </td>
             <td>
               <div class="doc-md-description">
@@ -3889,7 +3889,7 @@ point attribute and maps u→col, v→row (any topology).</p>
 <h5 id="fxhoudinimcp.tools.vat.bake_attribute_to_spatial_atlas(encode)" class="doc doc-heading doc-heading-parameter">                  <code>encode</code>
 <a href="#fxhoudinimcp.tools.vat.bake_attribute_to_spatial_atlas(encode)" class="headerlink" title="Permanent link">&para;</a></h5>            </td>
             <td>
-                  <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></code>
+                  <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/stdtypes.html#str">str</a></code>
             </td>
             <td>
               <div class="doc-md-description">
@@ -3905,7 +3905,7 @@ point attribute and maps u→col, v→row (any topology).</p>
 <h5 id="fxhoudinimcp.tools.vat.bake_attribute_to_spatial_atlas(components)" class="doc doc-heading doc-heading-parameter">                  <code>components</code>
 <a href="#fxhoudinimcp.tools.vat.bake_attribute_to_spatial_atlas(components)" class="headerlink" title="Permanent link">&para;</a></h5>            </td>
             <td>
-                  <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#list">list</a>[<a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#int">int</a>] | None</code>
+                  <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/stdtypes.html#list">list</a>[<a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/functions.html#int">int</a>] | None</code>
             </td>
             <td>
               <div class="doc-md-description">
@@ -3922,7 +3922,7 @@ point attribute and maps u→col, v→row (any topology).</p>
 <h5 id="fxhoudinimcp.tools.vat.bake_attribute_to_spatial_atlas(tiles_x)" class="doc doc-heading doc-heading-parameter">                  <code>tiles_x</code>
 <a href="#fxhoudinimcp.tools.vat.bake_attribute_to_spatial_atlas(tiles_x)" class="headerlink" title="Permanent link">&para;</a></h5>            </td>
             <td>
-                  <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#int">int</a> | None</code>
+                  <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/functions.html#int">int</a> | None</code>
             </td>
             <td>
               <div class="doc-md-description">
@@ -3938,7 +3938,7 @@ point attribute and maps u→col, v→row (any topology).</p>
 <h5 id="fxhoudinimcp.tools.vat.bake_attribute_to_spatial_atlas(tiles_y)" class="doc doc-heading doc-heading-parameter">                  <code>tiles_y</code>
 <a href="#fxhoudinimcp.tools.vat.bake_attribute_to_spatial_atlas(tiles_y)" class="headerlink" title="Permanent link">&para;</a></h5>            </td>
             <td>
-                  <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#int">int</a> | None</code>
+                  <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/functions.html#int">int</a> | None</code>
             </td>
             <td>
               <div class="doc-md-description">
@@ -3954,7 +3954,7 @@ point attribute and maps u→col, v→row (any topology).</p>
 <h5 id="fxhoudinimcp.tools.vat.bake_attribute_to_spatial_atlas(pad)" class="doc doc-heading doc-heading-parameter">                  <code>pad</code>
 <a href="#fxhoudinimcp.tools.vat.bake_attribute_to_spatial_atlas(pad)" class="headerlink" title="Permanent link">&para;</a></h5>            </td>
             <td>
-                  <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#int">int</a></code>
+                  <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/functions.html#int">int</a></code>
             </td>
             <td>
               <div class="doc-md-description">
@@ -3970,7 +3970,7 @@ point attribute and maps u→col, v→row (any topology).</p>
 <h5 id="fxhoudinimcp.tools.vat.bake_attribute_to_spatial_atlas(flip_v)" class="doc doc-heading doc-heading-parameter">                  <code>flip_v</code>
 <a href="#fxhoudinimcp.tools.vat.bake_attribute_to_spatial_atlas(flip_v)" class="headerlink" title="Permanent link">&para;</a></h5>            </td>
             <td>
-                  <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#bool">bool</a></code>
+                  <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/functions.html#bool">bool</a></code>
             </td>
             <td>
               <div class="doc-md-description">
@@ -3986,7 +3986,7 @@ point attribute and maps u→col, v→row (any topology).</p>
 <h5 id="fxhoudinimcp.tools.vat.bake_attribute_to_spatial_atlas(axis_convert)" class="doc doc-heading doc-heading-parameter">                  <code>axis_convert</code>
 <a href="#fxhoudinimcp.tools.vat.bake_attribute_to_spatial_atlas(axis_convert)" class="headerlink" title="Permanent link">&para;</a></h5>            </td>
             <td>
-                  <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#bool">bool</a></code>
+                  <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/functions.html#bool">bool</a></code>
             </td>
             <td>
               <div class="doc-md-description">
@@ -4003,7 +4003,7 @@ point attribute and maps u→col, v→row (any topology).</p>
 <h5 id="fxhoudinimcp.tools.vat.bake_attribute_to_spatial_atlas(normal_x_sign)" class="doc doc-heading doc-heading-parameter">                  <code>normal_x_sign</code>
 <a href="#fxhoudinimcp.tools.vat.bake_attribute_to_spatial_atlas(normal_x_sign)" class="headerlink" title="Permanent link">&para;</a></h5>            </td>
             <td>
-                  <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#float">float</a></code>
+                  <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/functions.html#float">float</a></code>
             </td>
             <td>
               <div class="doc-md-description">
@@ -4019,7 +4019,7 @@ point attribute and maps u→col, v→row (any topology).</p>
 <h5 id="fxhoudinimcp.tools.vat.bake_attribute_to_spatial_atlas(normal_y_sign)" class="doc doc-heading doc-heading-parameter">                  <code>normal_y_sign</code>
 <a href="#fxhoudinimcp.tools.vat.bake_attribute_to_spatial_atlas(normal_y_sign)" class="headerlink" title="Permanent link">&para;</a></h5>            </td>
             <td>
-                  <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#float">float</a></code>
+                  <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/functions.html#float">float</a></code>
             </td>
             <td>
               <div class="doc-md-description">
@@ -4035,7 +4035,7 @@ point attribute and maps u→col, v→row (any topology).</p>
 <h5 id="fxhoudinimcp.tools.vat.bake_attribute_to_spatial_atlas(compression)" class="doc doc-heading doc-heading-parameter">                  <code>compression</code>
 <a href="#fxhoudinimcp.tools.vat.bake_attribute_to_spatial_atlas(compression)" class="headerlink" title="Permanent link">&para;</a></h5>            </td>
             <td>
-                  <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></code>
+                  <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/stdtypes.html#str">str</a></code>
             </td>
             <td>
               <div class="doc-md-description">
@@ -4051,7 +4051,7 @@ point attribute and maps u→col, v→row (any topology).</p>
 <h5 id="fxhoudinimcp.tools.vat.bake_attribute_to_spatial_atlas(timeout)" class="doc doc-heading doc-heading-parameter">                  <code>timeout</code>
 <a href="#fxhoudinimcp.tools.vat.bake_attribute_to_spatial_atlas(timeout)" class="headerlink" title="Permanent link">&para;</a></h5>            </td>
             <td>
-                  <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#float">float</a> | None</code>
+                  <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/functions.html#float">float</a> | None</code>
             </td>
             <td>
               <div class="doc-md-description">
@@ -4084,8 +4084,8 @@ can exceed the 120s default; pass e.g. 600.</p>
 
 <a href="#fxhoudinimcp.tools.vat.get_vat_layout" class="headerlink" title="Permanent link">&para;</a></h4>
 <div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">get_vat_layout</span><span class="p">(</span>
-<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    <span class="n"><span title="fxhoudinimcp.tools.vat.get_vat_layout(ctx)">ctx</span></span><span class="p">:</span> <span class="n"><span title="mcp.server.fastmcp.Context">Context</span></span><span class="p">,</span> <span class="n"><a class="autorefs autorefs-internal" title="&lt;code&gt;node_path&lt;/code&gt; (&lt;code&gt;fxhoudinimcp.tools.vat.get_vat_layout(node_path)&lt;/code&gt;)" href="#fxhoudinimcp.tools.vat.get_vat_layout(node_path)">node_path</a></span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></span><span class="p">,</span> <span class="n"><a class="autorefs autorefs-internal" title="&lt;code&gt;num_points&lt;/code&gt; (&lt;code&gt;fxhoudinimcp.tools.vat.get_vat_layout(num_points)&lt;/code&gt;)" href="#fxhoudinimcp.tools.vat.get_vat_layout(num_points)">num_points</a></span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#int">int</a></span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
-<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#dict">dict</a></span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    <span class="n"><span title="fxhoudinimcp.tools.vat.get_vat_layout(ctx)">ctx</span></span><span class="p">:</span> <span class="n"><span title="mcp.server.fastmcp.Context">Context</span></span><span class="p">,</span> <span class="n"><a class="autorefs autorefs-internal" title="&lt;code&gt;node_path&lt;/code&gt; (&lt;code&gt;fxhoudinimcp.tools.vat.get_vat_layout(node_path)&lt;/code&gt;)" href="#fxhoudinimcp.tools.vat.get_vat_layout(node_path)">node_path</a></span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/stdtypes.html#str">str</a></span><span class="p">,</span> <span class="n"><a class="autorefs autorefs-internal" title="&lt;code&gt;num_points&lt;/code&gt; (&lt;code&gt;fxhoudinimcp.tools.vat.get_vat_layout(num_points)&lt;/code&gt;)" href="#fxhoudinimcp.tools.vat.get_vat_layout(num_points)">num_points</a></span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/functions.html#int">int</a></span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/stdtypes.html#dict">dict</a></span>
 </code></pre></div>
 
     <div class="doc doc-contents ">
@@ -4124,7 +4124,7 @@ as None rather than raising.</p>
 <h5 id="fxhoudinimcp.tools.vat.get_vat_layout(node_path)" class="doc doc-heading doc-heading-parameter">                  <code>node_path</code>
 <a href="#fxhoudinimcp.tools.vat.get_vat_layout(node_path)" class="headerlink" title="Permanent link">&para;</a></h5>            </td>
             <td>
-                  <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></code>
+                  <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/stdtypes.html#str">str</a></code>
             </td>
             <td>
               <div class="doc-md-description">
@@ -4141,7 +4141,7 @@ as None rather than raising.</p>
 <h5 id="fxhoudinimcp.tools.vat.get_vat_layout(num_points)" class="doc doc-heading doc-heading-parameter">                  <code>num_points</code>
 <a href="#fxhoudinimcp.tools.vat.get_vat_layout(num_points)" class="headerlink" title="Permanent link">&para;</a></h5>            </td>
             <td>
-                  <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#int">int</a> | None</code>
+                  <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/functions.html#int">int</a> | None</code>
             </td>
             <td>
               <div class="doc-md-description">
@@ -4176,26 +4176,26 @@ it explicitly when the SOP is not yet cooked.</p>
 <a href="#fxhoudinimcp.tools.vat.reshape_to_spatial_atlas" class="headerlink" title="Permanent link">&para;</a></h4>
 <div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">reshape_to_spatial_atlas</span><span class="p">(</span>
 <a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    <span class="n"><span title="fxhoudinimcp.tools.vat.reshape_to_spatial_atlas(ctx)">ctx</span></span><span class="p">:</span> <span class="n"><span title="mcp.server.fastmcp.Context">Context</span></span><span class="p">,</span>
-<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>    <span class="n"><a class="autorefs autorefs-internal" title="&lt;code&gt;src_path&lt;/code&gt; (&lt;code&gt;fxhoudinimcp.tools.vat.reshape_to_spatial_atlas(src_path)&lt;/code&gt;)" href="#fxhoudinimcp.tools.vat.reshape_to_spatial_atlas(src_path)">src_path</a></span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></span><span class="p">,</span>
-<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>    <span class="n"><a class="autorefs autorefs-internal" title="&lt;code&gt;out_path&lt;/code&gt; (&lt;code&gt;fxhoudinimcp.tools.vat.reshape_to_spatial_atlas(out_path)&lt;/code&gt;)" href="#fxhoudinimcp.tools.vat.reshape_to_spatial_atlas(out_path)">out_path</a></span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></span><span class="p">,</span>
-<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>    <span class="n"><a class="autorefs autorefs-internal" title="&lt;code&gt;grid_cols&lt;/code&gt; (&lt;code&gt;fxhoudinimcp.tools.vat.reshape_to_spatial_atlas(grid_cols)&lt;/code&gt;)" href="#fxhoudinimcp.tools.vat.reshape_to_spatial_atlas(grid_cols)">grid_cols</a></span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#int">int</a></span><span class="p">,</span>
-<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>    <span class="n"><a class="autorefs autorefs-internal" title="&lt;code&gt;grid_rows&lt;/code&gt; (&lt;code&gt;fxhoudinimcp.tools.vat.reshape_to_spatial_atlas(grid_rows)&lt;/code&gt;)" href="#fxhoudinimcp.tools.vat.reshape_to_spatial_atlas(grid_rows)">grid_rows</a></span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#int">int</a></span><span class="p">,</span>
-<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>    <span class="n"><a class="autorefs autorefs-internal" title="&lt;code&gt;frames&lt;/code&gt; (&lt;code&gt;fxhoudinimcp.tools.vat.reshape_to_spatial_atlas(frames)&lt;/code&gt;)" href="#fxhoudinimcp.tools.vat.reshape_to_spatial_atlas(frames)">frames</a></span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#int">int</a></span><span class="p">,</span>
-<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>    <span class="n"><a class="autorefs autorefs-internal" title="&lt;code&gt;vat_width&lt;/code&gt; (&lt;code&gt;fxhoudinimcp.tools.vat.reshape_to_spatial_atlas(vat_width)&lt;/code&gt;)" href="#fxhoudinimcp.tools.vat.reshape_to_spatial_atlas(vat_width)">vat_width</a></span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#int">int</a></span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>    <span class="n"><a class="autorefs autorefs-internal" title="&lt;code&gt;rows_per_frame&lt;/code&gt; (&lt;code&gt;fxhoudinimcp.tools.vat.reshape_to_spatial_atlas(rows_per_frame)&lt;/code&gt;)" href="#fxhoudinimcp.tools.vat.reshape_to_spatial_atlas(rows_per_frame)">rows_per_frame</a></span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#int">int</a></span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>    <span class="n"><a class="autorefs autorefs-internal" title="&lt;code&gt;frame_start_row&lt;/code&gt; (&lt;code&gt;fxhoudinimcp.tools.vat.reshape_to_spatial_atlas(frame_start_row)&lt;/code&gt;)" href="#fxhoudinimcp.tools.vat.reshape_to_spatial_atlas(frame_start_row)">frame_start_row</a></span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#int">int</a></span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
-<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>    <span class="n"><a class="autorefs autorefs-internal" title="&lt;code&gt;src_channels&lt;/code&gt; (&lt;code&gt;fxhoudinimcp.tools.vat.reshape_to_spatial_atlas(src_channels)&lt;/code&gt;)" href="#fxhoudinimcp.tools.vat.reshape_to_spatial_atlas(src_channels)">src_channels</a></span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#list">list</a></span><span class="p">[</span><span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#int">int</a></span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>    <span class="n"><a class="autorefs autorefs-internal" title="&lt;code&gt;decode&lt;/code&gt; (&lt;code&gt;fxhoudinimcp.tools.vat.reshape_to_spatial_atlas(decode)&lt;/code&gt;)" href="#fxhoudinimcp.tools.vat.reshape_to_spatial_atlas(decode)">decode</a></span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></span> <span class="o">=</span> <span class="s2">&quot;normal_halfunit&quot;</span><span class="p">,</span>
-<a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>    <span class="n"><a class="autorefs autorefs-internal" title="&lt;code&gt;axis_convert&lt;/code&gt; (&lt;code&gt;fxhoudinimcp.tools.vat.reshape_to_spatial_atlas(axis_convert)&lt;/code&gt;)" href="#fxhoudinimcp.tools.vat.reshape_to_spatial_atlas(axis_convert)">axis_convert</a></span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#bool">bool</a></span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
-<a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>    <span class="n"><a class="autorefs autorefs-internal" title="&lt;code&gt;normal_x_sign&lt;/code&gt; (&lt;code&gt;fxhoudinimcp.tools.vat.reshape_to_spatial_atlas(normal_x_sign)&lt;/code&gt;)" href="#fxhoudinimcp.tools.vat.reshape_to_spatial_atlas(normal_x_sign)">normal_x_sign</a></span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#float">float</a></span> <span class="o">=</span> <span class="mf">1.0</span><span class="p">,</span>
-<a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>    <span class="n"><a class="autorefs autorefs-internal" title="&lt;code&gt;normal_y_sign&lt;/code&gt; (&lt;code&gt;fxhoudinimcp.tools.vat.reshape_to_spatial_atlas(normal_y_sign)&lt;/code&gt;)" href="#fxhoudinimcp.tools.vat.reshape_to_spatial_atlas(normal_y_sign)">normal_y_sign</a></span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#float">float</a></span> <span class="o">=</span> <span class="mf">1.0</span><span class="p">,</span>
-<a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a>    <span class="n"><a class="autorefs autorefs-internal" title="&lt;code&gt;flip_v&lt;/code&gt; (&lt;code&gt;fxhoudinimcp.tools.vat.reshape_to_spatial_atlas(flip_v)&lt;/code&gt;)" href="#fxhoudinimcp.tools.vat.reshape_to_spatial_atlas(flip_v)">flip_v</a></span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#bool">bool</a></span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
-<a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a>    <span class="n"><a class="autorefs autorefs-internal" title="&lt;code&gt;tiles_x&lt;/code&gt; (&lt;code&gt;fxhoudinimcp.tools.vat.reshape_to_spatial_atlas(tiles_x)&lt;/code&gt;)" href="#fxhoudinimcp.tools.vat.reshape_to_spatial_atlas(tiles_x)">tiles_x</a></span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#int">int</a></span> <span class="o">=</span> <span class="mi">15</span><span class="p">,</span>
-<a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a>    <span class="n"><a class="autorefs autorefs-internal" title="&lt;code&gt;tiles_y&lt;/code&gt; (&lt;code&gt;fxhoudinimcp.tools.vat.reshape_to_spatial_atlas(tiles_y)&lt;/code&gt;)" href="#fxhoudinimcp.tools.vat.reshape_to_spatial_atlas(tiles_y)">tiles_y</a></span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#int">int</a></span> <span class="o">=</span> <span class="mi">10</span><span class="p">,</span>
-<a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a>    <span class="n"><a class="autorefs autorefs-internal" title="&lt;code&gt;pad&lt;/code&gt; (&lt;code&gt;fxhoudinimcp.tools.vat.reshape_to_spatial_atlas(pad)&lt;/code&gt;)" href="#fxhoudinimcp.tools.vat.reshape_to_spatial_atlas(pad)">pad</a></span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#int">int</a></span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
-<a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a>    <span class="n"><a class="autorefs autorefs-internal" title="&lt;code&gt;compression&lt;/code&gt; (&lt;code&gt;fxhoudinimcp.tools.vat.reshape_to_spatial_atlas(compression)&lt;/code&gt;)" href="#fxhoudinimcp.tools.vat.reshape_to_spatial_atlas(compression)">compression</a></span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></span> <span class="o">=</span> <span class="s2">&quot;zip&quot;</span><span class="p">,</span>
-<a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a>    <span class="n"><a class="autorefs autorefs-internal" title="&lt;code&gt;timeout&lt;/code&gt; (&lt;code&gt;fxhoudinimcp.tools.vat.reshape_to_spatial_atlas(timeout)&lt;/code&gt;)" href="#fxhoudinimcp.tools.vat.reshape_to_spatial_atlas(timeout)">timeout</a></span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#float">float</a></span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-<a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#dict">dict</a></span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>    <span class="n"><a class="autorefs autorefs-internal" title="&lt;code&gt;src_path&lt;/code&gt; (&lt;code&gt;fxhoudinimcp.tools.vat.reshape_to_spatial_atlas(src_path)&lt;/code&gt;)" href="#fxhoudinimcp.tools.vat.reshape_to_spatial_atlas(src_path)">src_path</a></span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/stdtypes.html#str">str</a></span><span class="p">,</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>    <span class="n"><a class="autorefs autorefs-internal" title="&lt;code&gt;out_path&lt;/code&gt; (&lt;code&gt;fxhoudinimcp.tools.vat.reshape_to_spatial_atlas(out_path)&lt;/code&gt;)" href="#fxhoudinimcp.tools.vat.reshape_to_spatial_atlas(out_path)">out_path</a></span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/stdtypes.html#str">str</a></span><span class="p">,</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>    <span class="n"><a class="autorefs autorefs-internal" title="&lt;code&gt;grid_cols&lt;/code&gt; (&lt;code&gt;fxhoudinimcp.tools.vat.reshape_to_spatial_atlas(grid_cols)&lt;/code&gt;)" href="#fxhoudinimcp.tools.vat.reshape_to_spatial_atlas(grid_cols)">grid_cols</a></span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/functions.html#int">int</a></span><span class="p">,</span>
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>    <span class="n"><a class="autorefs autorefs-internal" title="&lt;code&gt;grid_rows&lt;/code&gt; (&lt;code&gt;fxhoudinimcp.tools.vat.reshape_to_spatial_atlas(grid_rows)&lt;/code&gt;)" href="#fxhoudinimcp.tools.vat.reshape_to_spatial_atlas(grid_rows)">grid_rows</a></span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/functions.html#int">int</a></span><span class="p">,</span>
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>    <span class="n"><a class="autorefs autorefs-internal" title="&lt;code&gt;frames&lt;/code&gt; (&lt;code&gt;fxhoudinimcp.tools.vat.reshape_to_spatial_atlas(frames)&lt;/code&gt;)" href="#fxhoudinimcp.tools.vat.reshape_to_spatial_atlas(frames)">frames</a></span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/functions.html#int">int</a></span><span class="p">,</span>
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>    <span class="n"><a class="autorefs autorefs-internal" title="&lt;code&gt;vat_width&lt;/code&gt; (&lt;code&gt;fxhoudinimcp.tools.vat.reshape_to_spatial_atlas(vat_width)&lt;/code&gt;)" href="#fxhoudinimcp.tools.vat.reshape_to_spatial_atlas(vat_width)">vat_width</a></span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/functions.html#int">int</a></span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>    <span class="n"><a class="autorefs autorefs-internal" title="&lt;code&gt;rows_per_frame&lt;/code&gt; (&lt;code&gt;fxhoudinimcp.tools.vat.reshape_to_spatial_atlas(rows_per_frame)&lt;/code&gt;)" href="#fxhoudinimcp.tools.vat.reshape_to_spatial_atlas(rows_per_frame)">rows_per_frame</a></span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/functions.html#int">int</a></span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>    <span class="n"><a class="autorefs autorefs-internal" title="&lt;code&gt;frame_start_row&lt;/code&gt; (&lt;code&gt;fxhoudinimcp.tools.vat.reshape_to_spatial_atlas(frame_start_row)&lt;/code&gt;)" href="#fxhoudinimcp.tools.vat.reshape_to_spatial_atlas(frame_start_row)">frame_start_row</a></span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/functions.html#int">int</a></span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
+<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>    <span class="n"><a class="autorefs autorefs-internal" title="&lt;code&gt;src_channels&lt;/code&gt; (&lt;code&gt;fxhoudinimcp.tools.vat.reshape_to_spatial_atlas(src_channels)&lt;/code&gt;)" href="#fxhoudinimcp.tools.vat.reshape_to_spatial_atlas(src_channels)">src_channels</a></span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/stdtypes.html#list">list</a></span><span class="p">[</span><span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/functions.html#int">int</a></span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>    <span class="n"><a class="autorefs autorefs-internal" title="&lt;code&gt;decode&lt;/code&gt; (&lt;code&gt;fxhoudinimcp.tools.vat.reshape_to_spatial_atlas(decode)&lt;/code&gt;)" href="#fxhoudinimcp.tools.vat.reshape_to_spatial_atlas(decode)">decode</a></span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/stdtypes.html#str">str</a></span> <span class="o">=</span> <span class="s2">"normal_halfunit"</span><span class="p">,</span>
+<a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>    <span class="n"><a class="autorefs autorefs-internal" title="&lt;code&gt;axis_convert&lt;/code&gt; (&lt;code&gt;fxhoudinimcp.tools.vat.reshape_to_spatial_atlas(axis_convert)&lt;/code&gt;)" href="#fxhoudinimcp.tools.vat.reshape_to_spatial_atlas(axis_convert)">axis_convert</a></span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/functions.html#bool">bool</a></span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+<a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>    <span class="n"><a class="autorefs autorefs-internal" title="&lt;code&gt;normal_x_sign&lt;/code&gt; (&lt;code&gt;fxhoudinimcp.tools.vat.reshape_to_spatial_atlas(normal_x_sign)&lt;/code&gt;)" href="#fxhoudinimcp.tools.vat.reshape_to_spatial_atlas(normal_x_sign)">normal_x_sign</a></span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/functions.html#float">float</a></span> <span class="o">=</span> <span class="mf">1.0</span><span class="p">,</span>
+<a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>    <span class="n"><a class="autorefs autorefs-internal" title="&lt;code&gt;normal_y_sign&lt;/code&gt; (&lt;code&gt;fxhoudinimcp.tools.vat.reshape_to_spatial_atlas(normal_y_sign)&lt;/code&gt;)" href="#fxhoudinimcp.tools.vat.reshape_to_spatial_atlas(normal_y_sign)">normal_y_sign</a></span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/functions.html#float">float</a></span> <span class="o">=</span> <span class="mf">1.0</span><span class="p">,</span>
+<a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a>    <span class="n"><a class="autorefs autorefs-internal" title="&lt;code&gt;flip_v&lt;/code&gt; (&lt;code&gt;fxhoudinimcp.tools.vat.reshape_to_spatial_atlas(flip_v)&lt;/code&gt;)" href="#fxhoudinimcp.tools.vat.reshape_to_spatial_atlas(flip_v)">flip_v</a></span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/functions.html#bool">bool</a></span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+<a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a>    <span class="n"><a class="autorefs autorefs-internal" title="&lt;code&gt;tiles_x&lt;/code&gt; (&lt;code&gt;fxhoudinimcp.tools.vat.reshape_to_spatial_atlas(tiles_x)&lt;/code&gt;)" href="#fxhoudinimcp.tools.vat.reshape_to_spatial_atlas(tiles_x)">tiles_x</a></span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/functions.html#int">int</a></span> <span class="o">=</span> <span class="mi">15</span><span class="p">,</span>
+<a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a>    <span class="n"><a class="autorefs autorefs-internal" title="&lt;code&gt;tiles_y&lt;/code&gt; (&lt;code&gt;fxhoudinimcp.tools.vat.reshape_to_spatial_atlas(tiles_y)&lt;/code&gt;)" href="#fxhoudinimcp.tools.vat.reshape_to_spatial_atlas(tiles_y)">tiles_y</a></span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/functions.html#int">int</a></span> <span class="o">=</span> <span class="mi">10</span><span class="p">,</span>
+<a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a>    <span class="n"><a class="autorefs autorefs-internal" title="&lt;code&gt;pad&lt;/code&gt; (&lt;code&gt;fxhoudinimcp.tools.vat.reshape_to_spatial_atlas(pad)&lt;/code&gt;)" href="#fxhoudinimcp.tools.vat.reshape_to_spatial_atlas(pad)">pad</a></span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/functions.html#int">int</a></span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+<a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a>    <span class="n"><a class="autorefs autorefs-internal" title="&lt;code&gt;compression&lt;/code&gt; (&lt;code&gt;fxhoudinimcp.tools.vat.reshape_to_spatial_atlas(compression)&lt;/code&gt;)" href="#fxhoudinimcp.tools.vat.reshape_to_spatial_atlas(compression)">compression</a></span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/stdtypes.html#str">str</a></span> <span class="o">=</span> <span class="s2">"zip"</span><span class="p">,</span>
+<a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a>    <span class="n"><a class="autorefs autorefs-internal" title="&lt;code&gt;timeout&lt;/code&gt; (&lt;code&gt;fxhoudinimcp.tools.vat.reshape_to_spatial_atlas(timeout)&lt;/code&gt;)" href="#fxhoudinimcp.tools.vat.reshape_to_spatial_atlas(timeout)">timeout</a></span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/functions.html#float">float</a></span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/stdtypes.html#dict">dict</a></span>
 </code></pre></div>
 
     <div class="doc doc-contents ">
@@ -4234,7 +4234,7 @@ pixels on every side.</p>
 <h5 id="fxhoudinimcp.tools.vat.reshape_to_spatial_atlas(src_path)" class="doc doc-heading doc-heading-parameter">                  <code>src_path</code>
 <a href="#fxhoudinimcp.tools.vat.reshape_to_spatial_atlas(src_path)" class="headerlink" title="Permanent link">&para;</a></h5>            </td>
             <td>
-                  <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></code>
+                  <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/stdtypes.html#str">str</a></code>
             </td>
             <td>
               <div class="doc-md-description">
@@ -4250,7 +4250,7 @@ pixels on every side.</p>
 <h5 id="fxhoudinimcp.tools.vat.reshape_to_spatial_atlas(out_path)" class="doc doc-heading doc-heading-parameter">                  <code>out_path</code>
 <a href="#fxhoudinimcp.tools.vat.reshape_to_spatial_atlas(out_path)" class="headerlink" title="Permanent link">&para;</a></h5>            </td>
             <td>
-                  <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></code>
+                  <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/stdtypes.html#str">str</a></code>
             </td>
             <td>
               <div class="doc-md-description">
@@ -4266,7 +4266,7 @@ pixels on every side.</p>
 <h5 id="fxhoudinimcp.tools.vat.reshape_to_spatial_atlas(grid_cols)" class="doc doc-heading doc-heading-parameter">                  <code>grid_cols</code>
 <a href="#fxhoudinimcp.tools.vat.reshape_to_spatial_atlas(grid_cols)" class="headerlink" title="Permanent link">&para;</a></h5>            </td>
             <td>
-                  <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#int">int</a></code>
+                  <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/functions.html#int">int</a></code>
             </td>
             <td>
               <div class="doc-md-description">
@@ -4282,7 +4282,7 @@ pixels on every side.</p>
 <h5 id="fxhoudinimcp.tools.vat.reshape_to_spatial_atlas(grid_rows)" class="doc doc-heading doc-heading-parameter">                  <code>grid_rows</code>
 <a href="#fxhoudinimcp.tools.vat.reshape_to_spatial_atlas(grid_rows)" class="headerlink" title="Permanent link">&para;</a></h5>            </td>
             <td>
-                  <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#int">int</a></code>
+                  <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/functions.html#int">int</a></code>
             </td>
             <td>
               <div class="doc-md-description">
@@ -4298,7 +4298,7 @@ pixels on every side.</p>
 <h5 id="fxhoudinimcp.tools.vat.reshape_to_spatial_atlas(frames)" class="doc doc-heading doc-heading-parameter">                  <code>frames</code>
 <a href="#fxhoudinimcp.tools.vat.reshape_to_spatial_atlas(frames)" class="headerlink" title="Permanent link">&para;</a></h5>            </td>
             <td>
-                  <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#int">int</a></code>
+                  <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/functions.html#int">int</a></code>
             </td>
             <td>
               <div class="doc-md-description">
@@ -4314,7 +4314,7 @@ pixels on every side.</p>
 <h5 id="fxhoudinimcp.tools.vat.reshape_to_spatial_atlas(vat_width)" class="doc doc-heading doc-heading-parameter">                  <code>vat_width</code>
 <a href="#fxhoudinimcp.tools.vat.reshape_to_spatial_atlas(vat_width)" class="headerlink" title="Permanent link">&para;</a></h5>            </td>
             <td>
-                  <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#int">int</a> | None</code>
+                  <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/functions.html#int">int</a> | None</code>
             </td>
             <td>
               <div class="doc-md-description">
@@ -4331,7 +4331,7 @@ must match when provided.</p>
 <h5 id="fxhoudinimcp.tools.vat.reshape_to_spatial_atlas(rows_per_frame)" class="doc doc-heading doc-heading-parameter">                  <code>rows_per_frame</code>
 <a href="#fxhoudinimcp.tools.vat.reshape_to_spatial_atlas(rows_per_frame)" class="headerlink" title="Permanent link">&para;</a></h5>            </td>
             <td>
-                  <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#int">int</a> | None</code>
+                  <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/functions.html#int">int</a> | None</code>
             </td>
             <td>
               <div class="doc-md-description">
@@ -4348,7 +4348,7 @@ ceil(grid_cols*grid_rows / vat_width).</p>
 <h5 id="fxhoudinimcp.tools.vat.reshape_to_spatial_atlas(frame_start_row)" class="doc doc-heading doc-heading-parameter">                  <code>frame_start_row</code>
 <a href="#fxhoudinimcp.tools.vat.reshape_to_spatial_atlas(frame_start_row)" class="headerlink" title="Permanent link">&para;</a></h5>            </td>
             <td>
-                  <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#int">int</a></code>
+                  <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/functions.html#int">int</a></code>
             </td>
             <td>
               <div class="doc-md-description">
@@ -4364,7 +4364,7 @@ ceil(grid_cols*grid_rows / vat_width).</p>
 <h5 id="fxhoudinimcp.tools.vat.reshape_to_spatial_atlas(src_channels)" class="doc doc-heading doc-heading-parameter">                  <code>src_channels</code>
 <a href="#fxhoudinimcp.tools.vat.reshape_to_spatial_atlas(src_channels)" class="headerlink" title="Permanent link">&para;</a></h5>            </td>
             <td>
-                  <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#list">list</a>[<a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#int">int</a>] | None</code>
+                  <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/stdtypes.html#list">list</a>[<a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/functions.html#int">int</a>] | None</code>
             </td>
             <td>
               <div class="doc-md-description">
@@ -4381,7 +4381,7 @@ Must have &gt;= 3 entries for <code>"normal_halfunit"</code> decode.</p>
 <h5 id="fxhoudinimcp.tools.vat.reshape_to_spatial_atlas(decode)" class="doc doc-heading doc-heading-parameter">                  <code>decode</code>
 <a href="#fxhoudinimcp.tools.vat.reshape_to_spatial_atlas(decode)" class="headerlink" title="Permanent link">&para;</a></h5>            </td>
             <td>
-                  <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></code>
+                  <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/stdtypes.html#str">str</a></code>
             </td>
             <td>
               <div class="doc-md-description">
@@ -4397,7 +4397,7 @@ Must have &gt;= 3 entries for <code>"normal_halfunit"</code> decode.</p>
 <h5 id="fxhoudinimcp.tools.vat.reshape_to_spatial_atlas(axis_convert)" class="doc doc-heading doc-heading-parameter">                  <code>axis_convert</code>
 <a href="#fxhoudinimcp.tools.vat.reshape_to_spatial_atlas(axis_convert)" class="headerlink" title="Permanent link">&para;</a></h5>            </td>
             <td>
-                  <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#bool">bool</a></code>
+                  <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/functions.html#bool">bool</a></code>
             </td>
             <td>
               <div class="doc-md-description">
@@ -4413,7 +4413,7 @@ Must have &gt;= 3 entries for <code>"normal_halfunit"</code> decode.</p>
 <h5 id="fxhoudinimcp.tools.vat.reshape_to_spatial_atlas(normal_x_sign)" class="doc doc-heading doc-heading-parameter">                  <code>normal_x_sign</code>
 <a href="#fxhoudinimcp.tools.vat.reshape_to_spatial_atlas(normal_x_sign)" class="headerlink" title="Permanent link">&para;</a></h5>            </td>
             <td>
-                  <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#float">float</a></code>
+                  <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/functions.html#float">float</a></code>
             </td>
             <td>
               <div class="doc-md-description">
@@ -4429,7 +4429,7 @@ Must have &gt;= 3 entries for <code>"normal_halfunit"</code> decode.</p>
 <h5 id="fxhoudinimcp.tools.vat.reshape_to_spatial_atlas(normal_y_sign)" class="doc doc-heading doc-heading-parameter">                  <code>normal_y_sign</code>
 <a href="#fxhoudinimcp.tools.vat.reshape_to_spatial_atlas(normal_y_sign)" class="headerlink" title="Permanent link">&para;</a></h5>            </td>
             <td>
-                  <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#float">float</a></code>
+                  <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/functions.html#float">float</a></code>
             </td>
             <td>
               <div class="doc-md-description">
@@ -4445,7 +4445,7 @@ Must have &gt;= 3 entries for <code>"normal_halfunit"</code> decode.</p>
 <h5 id="fxhoudinimcp.tools.vat.reshape_to_spatial_atlas(flip_v)" class="doc doc-heading doc-heading-parameter">                  <code>flip_v</code>
 <a href="#fxhoudinimcp.tools.vat.reshape_to_spatial_atlas(flip_v)" class="headerlink" title="Permanent link">&para;</a></h5>            </td>
             <td>
-                  <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#bool">bool</a></code>
+                  <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/functions.html#bool">bool</a></code>
             </td>
             <td>
               <div class="doc-md-description">
@@ -4461,7 +4461,7 @@ Must have &gt;= 3 entries for <code>"normal_halfunit"</code> decode.</p>
 <h5 id="fxhoudinimcp.tools.vat.reshape_to_spatial_atlas(tiles_x)" class="doc doc-heading doc-heading-parameter">                  <code>tiles_x</code>
 <a href="#fxhoudinimcp.tools.vat.reshape_to_spatial_atlas(tiles_x)" class="headerlink" title="Permanent link">&para;</a></h5>            </td>
             <td>
-                  <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#int">int</a></code>
+                  <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/functions.html#int">int</a></code>
             </td>
             <td>
               <div class="doc-md-description">
@@ -4477,7 +4477,7 @@ Must have &gt;= 3 entries for <code>"normal_halfunit"</code> decode.</p>
 <h5 id="fxhoudinimcp.tools.vat.reshape_to_spatial_atlas(tiles_y)" class="doc doc-heading doc-heading-parameter">                  <code>tiles_y</code>
 <a href="#fxhoudinimcp.tools.vat.reshape_to_spatial_atlas(tiles_y)" class="headerlink" title="Permanent link">&para;</a></h5>            </td>
             <td>
-                  <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#int">int</a></code>
+                  <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/functions.html#int">int</a></code>
             </td>
             <td>
               <div class="doc-md-description">
@@ -4493,7 +4493,7 @@ Must have &gt;= 3 entries for <code>"normal_halfunit"</code> decode.</p>
 <h5 id="fxhoudinimcp.tools.vat.reshape_to_spatial_atlas(pad)" class="doc doc-heading doc-heading-parameter">                  <code>pad</code>
 <a href="#fxhoudinimcp.tools.vat.reshape_to_spatial_atlas(pad)" class="headerlink" title="Permanent link">&para;</a></h5>            </td>
             <td>
-                  <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#int">int</a></code>
+                  <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/functions.html#int">int</a></code>
             </td>
             <td>
               <div class="doc-md-description">
@@ -4509,7 +4509,7 @@ Must have &gt;= 3 entries for <code>"normal_halfunit"</code> decode.</p>
 <h5 id="fxhoudinimcp.tools.vat.reshape_to_spatial_atlas(compression)" class="doc doc-heading doc-heading-parameter">                  <code>compression</code>
 <a href="#fxhoudinimcp.tools.vat.reshape_to_spatial_atlas(compression)" class="headerlink" title="Permanent link">&para;</a></h5>            </td>
             <td>
-                  <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></code>
+                  <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/stdtypes.html#str">str</a></code>
             </td>
             <td>
               <div class="doc-md-description">
@@ -4525,7 +4525,7 @@ Must have &gt;= 3 entries for <code>"normal_halfunit"</code> decode.</p>
 <h5 id="fxhoudinimcp.tools.vat.reshape_to_spatial_atlas(timeout)" class="doc doc-heading doc-heading-parameter">                  <code>timeout</code>
 <a href="#fxhoudinimcp.tools.vat.reshape_to_spatial_atlas(timeout)" class="headerlink" title="Permanent link">&para;</a></h5>            </td>
             <td>
-                  <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#float">float</a> | None</code>
+                  <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/functions.html#float">float</a> | None</code>
             </td>
             <td>
               <div class="doc-md-description">
@@ -4558,19 +4558,19 @@ Must have &gt;= 3 entries for <code>"normal_halfunit"</code> decode.</p>
 <a href="#fxhoudinimcp.tools.vat.sample_vertex" class="headerlink" title="Permanent link">&para;</a></h4>
 <div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">sample_vertex</span><span class="p">(</span>
 <a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    <span class="n"><span title="fxhoudinimcp.tools.vat.sample_vertex(ctx)">ctx</span></span><span class="p">:</span> <span class="n"><span title="mcp.server.fastmcp.Context">Context</span></span><span class="p">,</span>
-<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>    <span class="n"><a class="autorefs autorefs-internal" title="&lt;code&gt;src_path&lt;/code&gt; (&lt;code&gt;fxhoudinimcp.tools.vat.sample_vertex(src_path)&lt;/code&gt;)" href="#fxhoudinimcp.tools.vat.sample_vertex(src_path)">src_path</a></span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></span><span class="p">,</span>
-<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>    <span class="n"><a class="autorefs autorefs-internal" title="&lt;code&gt;vertex_index&lt;/code&gt; (&lt;code&gt;fxhoudinimcp.tools.vat.sample_vertex(vertex_index)&lt;/code&gt;)" href="#fxhoudinimcp.tools.vat.sample_vertex(vertex_index)">vertex_index</a></span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#int">int</a></span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>    <span class="n"><a class="autorefs autorefs-internal" title="&lt;code&gt;grid_col&lt;/code&gt; (&lt;code&gt;fxhoudinimcp.tools.vat.sample_vertex(grid_col)&lt;/code&gt;)" href="#fxhoudinimcp.tools.vat.sample_vertex(grid_col)">grid_col</a></span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#int">int</a></span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>    <span class="n"><a class="autorefs autorefs-internal" title="&lt;code&gt;grid_row&lt;/code&gt; (&lt;code&gt;fxhoudinimcp.tools.vat.sample_vertex(grid_row)&lt;/code&gt;)" href="#fxhoudinimcp.tools.vat.sample_vertex(grid_row)">grid_row</a></span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#int">int</a></span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>    <span class="n"><a class="autorefs autorefs-internal" title="&lt;code&gt;grid_cols&lt;/code&gt; (&lt;code&gt;fxhoudinimcp.tools.vat.sample_vertex(grid_cols)&lt;/code&gt;)" href="#fxhoudinimcp.tools.vat.sample_vertex(grid_cols)">grid_cols</a></span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#int">int</a></span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>    <span class="n"><a class="autorefs autorefs-internal" title="&lt;code&gt;frames&lt;/code&gt; (&lt;code&gt;fxhoudinimcp.tools.vat.sample_vertex(frames)&lt;/code&gt;)" href="#fxhoudinimcp.tools.vat.sample_vertex(frames)">frames</a></span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#list">list</a></span><span class="p">[</span><span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#int">int</a></span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>    <span class="n"><a class="autorefs autorefs-internal" title="&lt;code&gt;vat_width&lt;/code&gt; (&lt;code&gt;fxhoudinimcp.tools.vat.sample_vertex(vat_width)&lt;/code&gt;)" href="#fxhoudinimcp.tools.vat.sample_vertex(vat_width)">vat_width</a></span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#int">int</a></span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>    <span class="n"><a class="autorefs autorefs-internal" title="&lt;code&gt;rows_per_frame&lt;/code&gt; (&lt;code&gt;fxhoudinimcp.tools.vat.sample_vertex(rows_per_frame)&lt;/code&gt;)" href="#fxhoudinimcp.tools.vat.sample_vertex(rows_per_frame)">rows_per_frame</a></span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#int">int</a></span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>    <span class="n"><a class="autorefs autorefs-internal" title="&lt;code&gt;frame_start_row&lt;/code&gt; (&lt;code&gt;fxhoudinimcp.tools.vat.sample_vertex(frame_start_row)&lt;/code&gt;)" href="#fxhoudinimcp.tools.vat.sample_vertex(frame_start_row)">frame_start_row</a></span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#int">int</a></span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
-<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>    <span class="n"><a class="autorefs autorefs-internal" title="&lt;code&gt;channels&lt;/code&gt; (&lt;code&gt;fxhoudinimcp.tools.vat.sample_vertex(channels)&lt;/code&gt;)" href="#fxhoudinimcp.tools.vat.sample_vertex(channels)">channels</a></span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#list">list</a></span><span class="p">[</span><span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#int">int</a></span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-<a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>    <span class="n"><a class="autorefs autorefs-internal" title="&lt;code&gt;decode&lt;/code&gt; (&lt;code&gt;fxhoudinimcp.tools.vat.sample_vertex(decode)&lt;/code&gt;)" href="#fxhoudinimcp.tools.vat.sample_vertex(decode)">decode</a></span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></span> <span class="o">=</span> <span class="s2">&quot;raw&quot;</span><span class="p">,</span>
-<a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>    <span class="n"><a class="autorefs autorefs-internal" title="&lt;code&gt;frozen_tol&lt;/code&gt; (&lt;code&gt;fxhoudinimcp.tools.vat.sample_vertex(frozen_tol)&lt;/code&gt;)" href="#fxhoudinimcp.tools.vat.sample_vertex(frozen_tol)">frozen_tol</a></span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#float">float</a></span> <span class="o">=</span> <span class="mf">1e-06</span><span class="p">,</span>
-<a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#dict">dict</a></span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>    <span class="n"><a class="autorefs autorefs-internal" title="&lt;code&gt;src_path&lt;/code&gt; (&lt;code&gt;fxhoudinimcp.tools.vat.sample_vertex(src_path)&lt;/code&gt;)" href="#fxhoudinimcp.tools.vat.sample_vertex(src_path)">src_path</a></span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/stdtypes.html#str">str</a></span><span class="p">,</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>    <span class="n"><a class="autorefs autorefs-internal" title="&lt;code&gt;vertex_index&lt;/code&gt; (&lt;code&gt;fxhoudinimcp.tools.vat.sample_vertex(vertex_index)&lt;/code&gt;)" href="#fxhoudinimcp.tools.vat.sample_vertex(vertex_index)">vertex_index</a></span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/functions.html#int">int</a></span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>    <span class="n"><a class="autorefs autorefs-internal" title="&lt;code&gt;grid_col&lt;/code&gt; (&lt;code&gt;fxhoudinimcp.tools.vat.sample_vertex(grid_col)&lt;/code&gt;)" href="#fxhoudinimcp.tools.vat.sample_vertex(grid_col)">grid_col</a></span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/functions.html#int">int</a></span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>    <span class="n"><a class="autorefs autorefs-internal" title="&lt;code&gt;grid_row&lt;/code&gt; (&lt;code&gt;fxhoudinimcp.tools.vat.sample_vertex(grid_row)&lt;/code&gt;)" href="#fxhoudinimcp.tools.vat.sample_vertex(grid_row)">grid_row</a></span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/functions.html#int">int</a></span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>    <span class="n"><a class="autorefs autorefs-internal" title="&lt;code&gt;grid_cols&lt;/code&gt; (&lt;code&gt;fxhoudinimcp.tools.vat.sample_vertex(grid_cols)&lt;/code&gt;)" href="#fxhoudinimcp.tools.vat.sample_vertex(grid_cols)">grid_cols</a></span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/functions.html#int">int</a></span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>    <span class="n"><a class="autorefs autorefs-internal" title="&lt;code&gt;frames&lt;/code&gt; (&lt;code&gt;fxhoudinimcp.tools.vat.sample_vertex(frames)&lt;/code&gt;)" href="#fxhoudinimcp.tools.vat.sample_vertex(frames)">frames</a></span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/stdtypes.html#list">list</a></span><span class="p">[</span><span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/functions.html#int">int</a></span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>    <span class="n"><a class="autorefs autorefs-internal" title="&lt;code&gt;vat_width&lt;/code&gt; (&lt;code&gt;fxhoudinimcp.tools.vat.sample_vertex(vat_width)&lt;/code&gt;)" href="#fxhoudinimcp.tools.vat.sample_vertex(vat_width)">vat_width</a></span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/functions.html#int">int</a></span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>    <span class="n"><a class="autorefs autorefs-internal" title="&lt;code&gt;rows_per_frame&lt;/code&gt; (&lt;code&gt;fxhoudinimcp.tools.vat.sample_vertex(rows_per_frame)&lt;/code&gt;)" href="#fxhoudinimcp.tools.vat.sample_vertex(rows_per_frame)">rows_per_frame</a></span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/functions.html#int">int</a></span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>    <span class="n"><a class="autorefs autorefs-internal" title="&lt;code&gt;frame_start_row&lt;/code&gt; (&lt;code&gt;fxhoudinimcp.tools.vat.sample_vertex(frame_start_row)&lt;/code&gt;)" href="#fxhoudinimcp.tools.vat.sample_vertex(frame_start_row)">frame_start_row</a></span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/functions.html#int">int</a></span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
+<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>    <span class="n"><a class="autorefs autorefs-internal" title="&lt;code&gt;channels&lt;/code&gt; (&lt;code&gt;fxhoudinimcp.tools.vat.sample_vertex(channels)&lt;/code&gt;)" href="#fxhoudinimcp.tools.vat.sample_vertex(channels)">channels</a></span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/stdtypes.html#list">list</a></span><span class="p">[</span><span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/functions.html#int">int</a></span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>    <span class="n"><a class="autorefs autorefs-internal" title="&lt;code&gt;decode&lt;/code&gt; (&lt;code&gt;fxhoudinimcp.tools.vat.sample_vertex(decode)&lt;/code&gt;)" href="#fxhoudinimcp.tools.vat.sample_vertex(decode)">decode</a></span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/stdtypes.html#str">str</a></span> <span class="o">=</span> <span class="s2">"raw"</span><span class="p">,</span>
+<a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>    <span class="n"><a class="autorefs autorefs-internal" title="&lt;code&gt;frozen_tol&lt;/code&gt; (&lt;code&gt;fxhoudinimcp.tools.vat.sample_vertex(frozen_tol)&lt;/code&gt;)" href="#fxhoudinimcp.tools.vat.sample_vertex(frozen_tol)">frozen_tol</a></span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/functions.html#float">float</a></span> <span class="o">=</span> <span class="mf">1e-06</span><span class="p">,</span>
+<a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/stdtypes.html#dict">dict</a></span>
 </code></pre></div>
 
     <div class="doc doc-contents ">
@@ -4605,7 +4605,7 @@ values across frames.</p>
 <h5 id="fxhoudinimcp.tools.vat.sample_vertex(src_path)" class="doc doc-heading doc-heading-parameter">                  <code>src_path</code>
 <a href="#fxhoudinimcp.tools.vat.sample_vertex(src_path)" class="headerlink" title="Permanent link">&para;</a></h5>            </td>
             <td>
-                  <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></code>
+                  <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/stdtypes.html#str">str</a></code>
             </td>
             <td>
               <div class="doc-md-description">
@@ -4621,7 +4621,7 @@ values across frames.</p>
 <h5 id="fxhoudinimcp.tools.vat.sample_vertex(vertex_index)" class="doc doc-heading doc-heading-parameter">                  <code>vertex_index</code>
 <a href="#fxhoudinimcp.tools.vat.sample_vertex(vertex_index)" class="headerlink" title="Permanent link">&para;</a></h5>            </td>
             <td>
-                  <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#int">int</a> | None</code>
+                  <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/functions.html#int">int</a> | None</code>
             </td>
             <td>
               <div class="doc-md-description">
@@ -4638,7 +4638,7 @@ values across frames.</p>
 <h5 id="fxhoudinimcp.tools.vat.sample_vertex(grid_col)" class="doc doc-heading doc-heading-parameter">                  <code>grid_col</code>
 <a href="#fxhoudinimcp.tools.vat.sample_vertex(grid_col)" class="headerlink" title="Permanent link">&para;</a></h5>            </td>
             <td>
-                  <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#int">int</a> | None</code>
+                  <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/functions.html#int">int</a> | None</code>
             </td>
             <td>
               <div class="doc-md-description">
@@ -4654,7 +4654,7 @@ values across frames.</p>
 <h5 id="fxhoudinimcp.tools.vat.sample_vertex(grid_row)" class="doc doc-heading doc-heading-parameter">                  <code>grid_row</code>
 <a href="#fxhoudinimcp.tools.vat.sample_vertex(grid_row)" class="headerlink" title="Permanent link">&para;</a></h5>            </td>
             <td>
-                  <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#int">int</a> | None</code>
+                  <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/functions.html#int">int</a> | None</code>
             </td>
             <td>
               <div class="doc-md-description">
@@ -4670,7 +4670,7 @@ values across frames.</p>
 <h5 id="fxhoudinimcp.tools.vat.sample_vertex(grid_cols)" class="doc doc-heading doc-heading-parameter">                  <code>grid_cols</code>
 <a href="#fxhoudinimcp.tools.vat.sample_vertex(grid_cols)" class="headerlink" title="Permanent link">&para;</a></h5>            </td>
             <td>
-                  <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#int">int</a> | None</code>
+                  <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/functions.html#int">int</a> | None</code>
             </td>
             <td>
               <div class="doc-md-description">
@@ -4687,7 +4687,7 @@ values across frames.</p>
 <h5 id="fxhoudinimcp.tools.vat.sample_vertex(frames)" class="doc doc-heading doc-heading-parameter">                  <code>frames</code>
 <a href="#fxhoudinimcp.tools.vat.sample_vertex(frames)" class="headerlink" title="Permanent link">&para;</a></h5>            </td>
             <td>
-                  <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#list">list</a>[<a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#int">int</a>] | None</code>
+                  <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/stdtypes.html#list">list</a>[<a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/functions.html#int">int</a>] | None</code>
             </td>
             <td>
               <div class="doc-md-description">
@@ -4705,7 +4705,7 @@ list is an inclusive range; a longer list is used as-is.</p>
 <h5 id="fxhoudinimcp.tools.vat.sample_vertex(vat_width)" class="doc doc-heading doc-heading-parameter">                  <code>vat_width</code>
 <a href="#fxhoudinimcp.tools.vat.sample_vertex(vat_width)" class="headerlink" title="Permanent link">&para;</a></h5>            </td>
             <td>
-                  <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#int">int</a> | None</code>
+                  <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/functions.html#int">int</a> | None</code>
             </td>
             <td>
               <div class="doc-md-description">
@@ -4721,7 +4721,7 @@ list is an inclusive range; a longer list is used as-is.</p>
 <h5 id="fxhoudinimcp.tools.vat.sample_vertex(rows_per_frame)" class="doc doc-heading doc-heading-parameter">                  <code>rows_per_frame</code>
 <a href="#fxhoudinimcp.tools.vat.sample_vertex(rows_per_frame)" class="headerlink" title="Permanent link">&para;</a></h5>            </td>
             <td>
-                  <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#int">int</a> | None</code>
+                  <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/functions.html#int">int</a> | None</code>
             </td>
             <td>
               <div class="doc-md-description">
@@ -4738,7 +4738,7 @@ list is an inclusive range; a longer list is used as-is.</p>
 <h5 id="fxhoudinimcp.tools.vat.sample_vertex(frame_start_row)" class="doc doc-heading doc-heading-parameter">                  <code>frame_start_row</code>
 <a href="#fxhoudinimcp.tools.vat.sample_vertex(frame_start_row)" class="headerlink" title="Permanent link">&para;</a></h5>            </td>
             <td>
-                  <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#int">int</a></code>
+                  <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/functions.html#int">int</a></code>
             </td>
             <td>
               <div class="doc-md-description">
@@ -4754,7 +4754,7 @@ list is an inclusive range; a longer list is used as-is.</p>
 <h5 id="fxhoudinimcp.tools.vat.sample_vertex(channels)" class="doc doc-heading doc-heading-parameter">                  <code>channels</code>
 <a href="#fxhoudinimcp.tools.vat.sample_vertex(channels)" class="headerlink" title="Permanent link">&para;</a></h5>            </td>
             <td>
-                  <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#list">list</a>[<a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#int">int</a>] | None</code>
+                  <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/stdtypes.html#list">list</a>[<a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/functions.html#int">int</a>] | None</code>
             </td>
             <td>
               <div class="doc-md-description">
@@ -4770,7 +4770,7 @@ list is an inclusive range; a longer list is used as-is.</p>
 <h5 id="fxhoudinimcp.tools.vat.sample_vertex(decode)" class="doc doc-heading doc-heading-parameter">                  <code>decode</code>
 <a href="#fxhoudinimcp.tools.vat.sample_vertex(decode)" class="headerlink" title="Permanent link">&para;</a></h5>            </td>
             <td>
-                  <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></code>
+                  <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/stdtypes.html#str">str</a></code>
             </td>
             <td>
               <div class="doc-md-description">
@@ -4787,7 +4787,7 @@ decodes via <code>v*2-1</code> and adds a <code>decoded</code> key per frame.</p
 <h5 id="fxhoudinimcp.tools.vat.sample_vertex(frozen_tol)" class="doc doc-heading doc-heading-parameter">                  <code>frozen_tol</code>
 <a href="#fxhoudinimcp.tools.vat.sample_vertex(frozen_tol)" class="headerlink" title="Permanent link">&para;</a></h5>            </td>
             <td>
-                  <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#float">float</a></code>
+                  <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/functions.html#float">float</a></code>
             </td>
             <td>
               <div class="doc-md-description">
@@ -4836,7 +4836,7 @@ decodes via <code>v*2-1</code> and adds a <code>decoded</code> key per frame.</p
     <span class="md-icon" title="Last update">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"/></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="August 14, 2026 06:02:47 UTC">August 14, 2026</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="September 24, 2026 06:29:57 UTC">September 24, 2026</span>
   </span>
 
     
@@ -4846,7 +4846,7 @@ decodes via <code>v*2-1</code> and adds a <code>decoded</code> key per frame.</p
     <span class="md-icon" title="Created">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M14.47 15.08 11 13V7h1.5v5.25l3.08 1.83c-.41.28-.79.62-1.11 1m-1.39 4.84c-.36.05-.71.08-1.08.08-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8c0 .37-.03.72-.08 1.08.69.1 1.33.32 1.92.64.1-.56.16-1.13.16-1.72 0-5.5-4.5-10-10-10S2 6.5 2 12s4.47 10 10 10c.59 0 1.16-.06 1.72-.16-.32-.59-.54-1.23-.64-1.92M18 15v3h-3v2h3v3h2v-3h3v-2h-3v-3z"/></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="August 14, 2026 06:02:47 UTC">August 14, 2026</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="September 24, 2026 06:29:57 UTC">September 24, 2026</span>
   </span>
 
     
